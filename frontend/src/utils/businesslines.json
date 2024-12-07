@@ -1,0 +1,15 @@
+[
+  {
+    "label": "Commercial",
+    "value": "Commercial"
+  },
+  {
+    "label": "Property",
+    "value": "Property"
+  },
+  {
+    "label": "Education",
+    "value": "Education"
+  },
+  { "label": "Healthcare", "value": "Healthcare" }
+]

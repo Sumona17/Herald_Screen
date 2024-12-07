@@ -1,0 +1,5 @@
+[
+  { "value": "text", "label": "Text" },
+  { "value": "dropdown", "label": "Dropdown" },
+  { "value": "number", "label": "Number" }
+]

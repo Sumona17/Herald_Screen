@@ -1,0 +1,42 @@
+[
+  {
+    "tab": "Insured Info",
+    "sections": [
+      {
+        "sectionName": "Primary Insuerd",
+        "fields": [
+          {
+            "fieldLabel": "Organization Type",
+            "fieldType": "dropdown",
+            "fieldRequired": "required",
+            "options": ["Public", "Private"]
+          },
+          {
+            "fieldLabel": "Insured Name",
+            "fieldType": "text",
+            "fieldRequired": "optional"
+          }
+        ]
+      },
+      {
+        "sectionName": "Contact Info",
+        "fields": [
+          {
+            "fieldLabel": "Country Code",
+            "fieldType": "text",
+            "fieldRequired": "required"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tab": "Risk",
+    "sections": [
+      {
+        "sectionName": "Location",
+        "fields": []
+      }
+    ]
+  }
+]

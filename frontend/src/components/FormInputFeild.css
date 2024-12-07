@@ -1,0 +1,16 @@
+
+input {
+
+  font-family: "Inter", sans-serif;
+  height: 32px;
+  font-size: 14px;
+  border: none;
+}
+label {
+  font-size: 12px !important;
+ 
+  font-weight: 500;
+  line-height: 19.5px;
+  color: #adacb0 !important;
+  font-family: "Inter", sans-serif;
+}
