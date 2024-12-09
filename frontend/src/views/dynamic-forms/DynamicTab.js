@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, InputNumber, Checkbox, Button, Select, message, Spin, Tabs } from "antd";
+import { Form, Input, InputNumber, Select, DatePicker, Button, message, Spin, Tabs } from "antd";
 import axios from "axios";
+import moment from "moment";
 
 const { TabPane } = Tabs;
 const { Option } = Select;
 
-const DynamicFormTab = () => {
+const DynamicForm = () => {
   const [form] = Form.useForm();
-  const [applicationData, setApplicationData] = useState(null); // Holds the fetched data
-  const [loading, setLoading] = useState(true); // To manage loading state
+  const [applicationData, setApplicationData] = useState(null); // Holds the fetched application data
+  const [loading, setLoading] = useState(true); // Loading state
+  const [currentTab, setCurrentTab] = useState("risk_values"); // To track the active tab
 
   useEffect(() => {
     const fetchApplicationData = async () => {
@@ -46,7 +48,7 @@ const DynamicFormTab = () => {
 
   const onFinish = async (values) => {
     try {
-        const response = await axios.post("https://sandbox.heraldapi.com/applications", values);
+      const response = await axios.post("https://sandbox.heraldapi.com/applications", values);
       message.success("Form submitted successfully!");
       console.log("API Response:", response.data);
     } catch (error) {
@@ -55,29 +57,13 @@ const DynamicFormTab = () => {
     }
   };
 
-  if (loading) {
-    return <Spin size="large" style={{ display: "block", margin: "auto", marginTop: "20%" }} />;
-  }
-
-  if (!applicationData) {
-    return <p style={{ textAlign: "center", marginTop: "20%" }}>No application data available.</p>;
-  }
-
-  // Tab Names Mapping
-  const tabNames = {
-    risk_values: "Risk Values",
-    coverage_values: "Coverage Values",
-    products: "Products",
-  };
-
-  // Render Risk Values Tab Content
-  const renderRiskValues = () => {
-    if (!applicationData.risk_values || applicationData.risk_values.length === 0) {
-      return <p>No Risk Values available.</p>;
+  const renderFormFields = (data) => {
+    if (!data || data.length === 0) {
+      return <p>No fields available.</p>;
     }
 
     // Group fields by their section
-    const groupedSections = applicationData.risk_values.reduce((acc, field) => {
+    const groupedSections = data.reduce((acc, field) => {
       const { section } = field;
       if (!acc[section]) {
         acc[section] = [];
@@ -92,14 +78,15 @@ const DynamicFormTab = () => {
           <div key={sectionName} style={{ marginBottom: 24 }}>
             <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
             {fields.map((field) => {
-              const { risk_parameter_id, parameter_text, input_type, schema } = field;
+              const { risk_parameter_id, coverage_parameter_id, parameter_text, input_type, schema } = field;
+              const fieldKey = risk_parameter_id || coverage_parameter_id; // Use appropriate ID based on tab
 
               switch (input_type) {
                 case "short_text":
                   return (
                     <Form.Item
-                      key={risk_parameter_id}
-                      name={risk_parameter_id}
+                      key={fieldKey}
+                      name={fieldKey}
                       label={parameter_text.agent_facing_text}
                       rules={[
                         { required: schema.min_length > 0, message: `Please enter ${parameter_text.agent_facing_text}` },
@@ -113,8 +100,8 @@ const DynamicFormTab = () => {
                 case "integer":
                   return (
                     <Form.Item
-                      key={risk_parameter_id}
-                      name={risk_parameter_id}
+                      key={fieldKey}
+                      name={fieldKey}
                       label={parameter_text.agent_facing_text}
                       rules={[{ required: true, message: `Please enter ${parameter_text.agent_facing_text}` }]}
                     >
@@ -124,8 +111,8 @@ const DynamicFormTab = () => {
                 case "select_one":
                   return (
                     <Form.Item
-                      key={risk_parameter_id}
-                      name={risk_parameter_id}
+                      key={fieldKey}
+                      name={fieldKey}
                       label={parameter_text.agent_facing_text}
                       rules={[{ required: true, message: `Please select ${parameter_text.agent_facing_text}` }]}
                     >
@@ -139,15 +126,36 @@ const DynamicFormTab = () => {
                       </Select>
                     </Form.Item>
                   );
-                case "agree_to":
+                case "date":
                   return (
                     <Form.Item
-                      key={risk_parameter_id}
-                      name={risk_parameter_id}
-                      valuePropName="checked"
-                      rules={[{ required: true, message: `You must agree to ${parameter_text.agent_facing_text}` }]}
+                      key={fieldKey}
+                      name={fieldKey}
+                      label={parameter_text.agent_facing_text}
+                      rules={[
+                        { required: true, message: `Please select ${parameter_text.agent_facing_text}` },
+                        {
+                          validator: (_, value) => {
+                            if (!value) return Promise.resolve();
+                            const selectedDate = moment(value);
+                            const minDate = moment(schema.min_date);
+                            const maxDate = moment(schema.max_date);
+
+                            if (selectedDate.isBefore(minDate) || selectedDate.isAfter(maxDate)) {
+                              return Promise.reject(
+                                new Error(`Date must be between ${schema.min_date} and ${schema.max_date}`)
+                              );
+                            }
+
+                            return Promise.resolve();
+                          },
+                        },
+                      ]}
                     >
-                      <Checkbox>{parameter_text.agent_facing_text}</Checkbox>
+                      <DatePicker
+                        style={{ width: "100%" }}
+                        placeholder={`Select ${parameter_text.agent_facing_text}`}
+                      />
                     </Form.Item>
                   );
                 default:
@@ -165,36 +173,34 @@ const DynamicFormTab = () => {
     );
   };
 
-  // Render Other Tabs Content
-  const renderTabContent = (key) => {
-    const data = applicationData[key];
-    if (!data || data.length === 0) {
-      return <p>No {tabNames[key]} available.</p>;
-    }
+  if (loading) {
+    return <Spin size="large" style={{ display: "block", margin: "auto", marginTop: "20%" }} />;
+  }
 
-    return (
-      <ul>
-        {data.map((item, index) => (
-          <li key={index}>{typeof item === "string" ? item : JSON.stringify(item)}</li>
-        ))}
-      </ul>
-    );
+  if (!applicationData) {
+    return <p style={{ textAlign: "center", marginTop: "20%" }}>No application data available.</p>;
+  }
+
+  const handleTabChange = (key) => {
+    setCurrentTab(key);
+    form.resetFields(); // Reset form fields when switching tabs
   };
 
   return (
-    <Tabs defaultActiveKey="risk_values">
-      {Object.keys(applicationData).map((key) => {
-        if (tabNames[key]) {
-          return (
-            <TabPane tab={tabNames[key]} key={key}>
-              {key === "risk_values" ? renderRiskValues() : renderTabContent(key)}
-            </TabPane>
-          );
-        }
-        return null;
-      })}
+    <Tabs defaultActiveKey="risk_values" onChange={handleTabChange}>
+      <TabPane tab="Risk Values" key="risk_values">
+        {renderFormFields(applicationData.risk_values)}
+      </TabPane>
+      <TabPane tab="Coverage Values" key="coverage_values">
+        {renderFormFields(applicationData.coverage_values)}
+      </TabPane>
+      <TabPane tab="Products" key="products">
+        {applicationData.products.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </TabPane>
     </Tabs>
   );
 };
 
-export default DynamicFormTab;
+export default DynamicForm;
