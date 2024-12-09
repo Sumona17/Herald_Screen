@@ -214,6 +214,51 @@ const DynamicForm = () => {
             <DatePicker style={{ width: "100%" }} placeholder={`Select ${parameter_text.agent_facing_text}`} />
           </Form.Item>
         );
+        case "address":
+  return (
+    <div key={fieldKey}>
+      <h4>{parameter_text.agent_facing_text}</h4>
+      {Object.entries(schema.properties).map(([key, propertySchema]) => {
+        const fullKey = `${fieldKey}.${key}`;
+        const isRequired = schema.required.includes(key);
+        return (
+          <Form.Item
+            key={fullKey}
+            name={fullKey}
+            label={propertySchema.title}
+            rules={[
+              { required: isRequired, message: `Please enter ${propertySchema.title}` },
+              propertySchema.min_length && {
+                min: propertySchema.min_length,
+                message: `Minimum length is ${propertySchema.min_length}`,
+              },
+              propertySchema.max_length && {
+                max: propertySchema.max_length,
+                message: `Maximum length is ${propertySchema.max_length}`,
+              },
+              propertySchema.pattern && {
+                pattern: new RegExp(propertySchema.pattern),
+                message: `Invalid ${propertySchema.title}`,
+              },
+            ]}
+          >
+            {propertySchema.enum ? (
+              <Select placeholder={`Select ${propertySchema.title}`}>
+                {propertySchema.enum.map((option) => (
+                  <Option key={option} value={option}>
+                    {option}
+                  </Option>
+                ))}
+              </Select>
+            ) : (
+              <Input placeholder={`Enter ${propertySchema.title}`} />
+            )}
+          </Form.Item>
+        );
+      })}
+    </div>
+  );
+
       default:
         return null;
     }
