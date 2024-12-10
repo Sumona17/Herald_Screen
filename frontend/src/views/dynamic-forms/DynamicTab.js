@@ -11,6 +11,7 @@ const DynamicForm = () => {
   const [applicationData, setApplicationData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState("risk_values");
+  const [industryOptions, setIndustryOptions] = useState([]);
 
   useEffect(() => {
     const fetchApplicationData = async () => {
@@ -26,9 +27,17 @@ const DynamicForm = () => {
             },
           }
         );
-
+  
         if (response.data && response.data.application) {
           setApplicationData(response.data.application);
+  
+          // Check if Industry classification is part of the form and fetch options
+          const hasIndustryField = response.data.application.risk_values.some(
+            (field) => field.parameter_text.agent_facing_text === "Industry classification"
+          );
+          if (hasIndustryField) {
+            fetchIndustryOptions();
+          }
         } else {
           throw new Error("Invalid application data format received from API.");
         }
@@ -39,10 +48,27 @@ const DynamicForm = () => {
         setLoading(false);
       }
     };
-
+  
     fetchApplicationData();
   }, []);
-
+  
+  const fetchIndustryOptions = async () => {
+    try {
+      const response = await axios.get("https://sandbox.heraldapi.com/classifications/naics_index_entries", {
+        headers: {
+          // Accept: "application/json",
+          Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF0Zm9ybUlkIjoicGZtX2FxbDZfZXhhdmFsdSIsImlhdCI6MTczMzIwOTE1NywiZXhwIjoxNzMzMjk1NTU3fQ.Tn_OxSZ4RFbwRlI7lXdWIbPn355szI71wE7qK__PLqM", // Replace with the actual token
+        },
+      });
+      if (response.data) {
+        setIndustryOptions(response.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching industry classification data:", error);
+      message.error("Failed to fetch industry classification data.");
+    }
+  };
+  
   const onFinish = async (values) => {
     try {
       const response = await axios.post("https://sandbox.heraldapi.com/applications", values);
@@ -167,6 +193,28 @@ const DynamicForm = () => {
             <InputNumber style={{ width: "100%" }} placeholder={`Enter ${parameter_text.agent_facing_text}`} />
           </Form.Item>
         );
+        case "email":
+          return (
+            <Form.Item
+              key={fieldKey}
+              name={fieldKey}
+              label={parameter_text.agent_facing_text}
+              rules={[{ required: true, message: `Please enter ${parameter_text.agent_facing_text}` }]}
+            >
+              <InputNumber style={{ width: "100%" }} placeholder={`Enter ${parameter_text.agent_facing_text}`} />
+            </Form.Item>
+          );
+          case "phone":
+          return (
+            <Form.Item
+              key={fieldKey}
+              name={fieldKey}
+              label={parameter_text.agent_facing_text}
+              rules={[{ required: true, message: `Please enter ${parameter_text.agent_facing_text}` }]}
+            >
+              <InputNumber style={{ width: "100%" }} placeholder={`Enter ${parameter_text.agent_facing_text}`} />
+            </Form.Item>
+          );
       case "select_one":
         return (
           <Form.Item
@@ -185,7 +233,25 @@ const DynamicForm = () => {
             </Select>
           </Form.Item>
         );
-      case "date":
+        case "select_many":
+          return (
+            <Form.Item
+              key={fieldKey}
+              name={fieldKey}
+              label={parameter_text.agent_facing_text}
+              rules={[{ required: true, message: `Please select ${parameter_text.agent_facing_text}` }]}
+            >
+              <Select placeholder={`Select ${parameter_text.agent_facing_text}`}>
+                {schema.items.enum &&
+                  schema.items.enum.map((option) => (
+                    <Option key={option} value={option}>
+                      {option}
+                    </Option>
+                  ))}
+              </Select>
+            </Form.Item>
+          );
+        case "date":
         return (
           <Form.Item
             key={fieldKey}
@@ -258,7 +324,47 @@ const DynamicForm = () => {
       })}
     </div>
   );
-
+  case "currency": // New case for currency input type
+  return (
+    <Form.Item
+      key={fieldKey}
+      name={fieldKey}
+      label={parameter_text.agent_facing_text}
+      rules={[
+        { required: true, message: `Please enter ${parameter_text.agent_facing_text}` },
+        { type: "number", min: schema.minimum, max: schema.maximum, message: `Value must be between ${schema.minimum} and ${schema.maximum}` },
+      ]}
+    >
+      <InputNumber
+        style={{ width: "100%" }}
+        placeholder={`Enter ${parameter_text.agent_facing_text}`}
+        formatter={(value) => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} // Format as currency
+        parser={(value) => value.replace(/\$\s?|(,*)/g, "")} // Parse currency back to number
+      />
+    </Form.Item>
+  );
+  case "select_one":
+    const isIndustryField = parameter_text.agent_facing_text === "Industry classification";
+    const options = isIndustryField ? industryOptions : schema.enum;
+  
+    return (
+      <Form.Item
+        key={fieldKey}
+        name={fieldKey}
+        label={parameter_text.agent_facing_text}
+        rules={[{ required: true, message: `Please select ${parameter_text.agent_facing_text}` }]}
+      >
+        <Select placeholder={`Select ${parameter_text.agent_facing_text}`}>
+          {options &&
+            options.map((option) => (
+              <Option key={option.code || option} value={option.code || option}>
+                {option.title || option}
+              </Option>
+            ))}
+        </Select>
+      </Form.Item>
+    );
+  
       default:
         return null;
     }
