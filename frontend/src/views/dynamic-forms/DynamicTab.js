@@ -13,63 +13,66 @@ const DynamicForm = () => {
   const [currentTab, setCurrentTab] = useState("risk_values");
   const [industryOptions, setIndustryOptions] = useState([]);
   const [submitStatus, setSubmitStatus] = useState({ type: null, message: null });
-
-
-  useEffect(() => {
-    const fetchApplicationData = async () => {
-      try {
-        const response = await axios.post(
-          "https://sandbox.heraldapi.com/applications",
-          {
-            products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
-          },
-          {
-            headers: {
-              Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
+   useEffect(() => {
+      const fetchApplicationData = async () => {
+        try {
+          const response = await axios.post(
+            "https://sandbox.heraldapi.com/applications",
+            {
+              products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
             },
-          }
-        );
-
-        if (response.data && response.data.application) {
-          setApplicationData(response.data.application);
-
-          // Check if Industry classification is part of the form and fetch options
-          const hasIndustryField = response.data.application.risk_values.some(
-            (field) => field.parameter_text.agent_facing_text === "Industry classification"
+            {
+              headers: {
+                Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
+              },
+            }
           );
-          if (hasIndustryField) {
-            fetchIndustryOptions();
+   
+          if (response.data && response.data.application) {
+            setApplicationData(response.data.application);
+   
+            // Check if Industry classification is part of the form and fetch options
+            const hasIndustryField = response.data.application.risk_values.some(
+              (field) => field.parameter_text.agent_facing_text === "Industry classification"
+            );
+            if (hasIndustryField) {
+              fetchIndustryOptions();
+            }
+          } else {
+            throw new Error("Invalid application data format received from API.");
           }
-        } else {
-          throw new Error("Invalid application data format received from API.");
+        } catch (error) {
+          console.error("Error fetching application data:", error);
+          message.error("Failed to fetch application data.");
+        } finally {
+          setLoading(false);
+        }
+      };
+   
+      fetchApplicationData();
+    }, []);
+   
+    const fetchIndustryOptions = async () => {
+      try {
+        const response = await axios.get("https://sandbox.heraldapi.com/classifications/naics_index_entries", {
+          headers: {
+            Accept: "application/json",
+            Authorization: "Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=",
+          },
+        });
+        if (response.data && response.data.classifications) {
+          // Map the industry classifications to a format usable in the dropdown
+          const classifications = response.data.classifications.map((item) => ({
+            value: item.naics_2017_6_digit,
+            label: `${item.naics_2017_6_digit_description} (${item.naics_2017_6_digit})`,
+          }));
+          setIndustryOptions(classifications);
         }
       } catch (error) {
-        console.error("Error fetching application data:", error);
-        message.error("Failed to fetch application data.");
-      } finally {
-        setLoading(false);
+        console.error("Error fetching industry classification data:", error);
+        message.error("Failed to fetch industry classification data.");
       }
-    };
-
-    fetchApplicationData();
-  }, []);
-
-  const fetchIndustryOptions = async () => {
-    try {
-      const response = await axios.get("https://sandbox.heraldapi.com/classifications/naics_index_entries", {
-        headers: {
-          // Accept: "application/json",
-          Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF0Zm9ybUlkIjoicGZtX2FxbDZfZXhhdmFsdSIsImlhdCI6MTczMzIwOTE1NywiZXhwIjoxNzMzMjk1NTU3fQ.Tn_OxSZ4RFbwRlI7lXdWIbPn355szI71wE7qK__PLqM", // Replace with the actual token
-        },
-      });
-      if (response.data) {
-        setIndustryOptions(response.data.data || []);
-      }
-    } catch (error) {
-      console.error("Error fetching industry classification data:", error);
-      message.error("Failed to fetch industry classification data.");
     }
-  };
 
   const onFinish = async (values) => {
     try {
@@ -247,20 +250,39 @@ const DynamicForm = () => {
 
     switch (input_type) {
       case "short_text":
+        // Check if the field is specifically for "Industry classification"
+        if (parameter_text.agent_facing_text === "Industry classification") {
+          return (
+            <Form.Item
+              key={fieldKey}
+              name={fieldKey}
+              label={parameter_text.agent_facing_text}
+              rules={[{ required: true, message: `Please select ${parameter_text.agent_facing_text}` }]}
+            >
+              <Select placeholder={`Select ${parameter_text.agent_facing_text}`}>
+                {industryOptions &&
+                  industryOptions.map((option) => (
+                    <Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Option>
+                  ))}
+              </Select>
+            </Form.Item>
+          );
+        }
+     
+        // Default `short_text` case for other fields
         return (
           <Form.Item
             key={fieldKey}
             name={fieldKey}
             label={parameter_text.agent_facing_text}
-            rules={[
-              { required: schema.min_length > 0, message: `Please enter ${parameter_text.agent_facing_text}` },
-              { min: schema.min_length, message: `Minimum length is ${schema.min_length}` },
-              { max: schema.max_length, message: `Maximum length is ${schema.max_length}` },
-            ]}
+            rules={[{ required: true, message: `Please enter ${parameter_text.agent_facing_text}` }]}
           >
             <Input placeholder={`Enter ${parameter_text.agent_facing_text}`} />
           </Form.Item>
         );
+     
       case "integer":
         return (
           <Form.Item
