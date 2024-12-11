@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Form, Input, InputNumber, Select, DatePicker, Button, message, Spin, Tabs, Row, Col, Checkbox, Alert, Space, Modal } from "antd";
 import axios from "axios";
 import moment from "moment";
+import { useNavigate } from 'react-router-dom';
 
 
 const { TabPane } = Tabs;
@@ -15,6 +16,7 @@ const DynamicForm = () => {
   const [industryOptions, setIndustryOptions] = useState([]);
   const [submitStatus, setSubmitStatus] = useState({ type: null, message: null });
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchApplicationData = async () => {
@@ -119,10 +121,14 @@ const DynamicForm = () => {
     }
   };
 
-  const handleGetQuote = () => {
-    console.log("Getting quote...");
-    setIsModalVisible(false);
-  };
+ const handleGetQuote = () => {
+  navigate('/free/quote', { 
+    state: { 
+      formData: form.getFieldValue(), 
+      applicationData 
+    } 
+  });
+};
 
   const renderModalContent = () => {
     const isSuccess = submitStatus.type === 'success';

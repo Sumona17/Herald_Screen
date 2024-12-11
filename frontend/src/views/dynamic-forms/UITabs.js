@@ -1,37 +1,48 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, InputNumber, Select, DatePicker, Button, message, Spin, Tabs } from "antd";
+import { Form, Input, InputNumber, Select, DatePicker, Button, message, Spin, Tabs, Row, Col, Checkbox, Alert, Space, Modal } from "antd";
 import axios from "axios";
 import moment from "moment";
+import { useNavigate } from 'react-router-dom';
+
 
 const { TabPane } = Tabs;
 const { Option } = Select;
 
 const DynamicForm = () => {
   const [form] = Form.useForm();
-  const [applicationData, setApplicationData] = useState(null); // Holds the fetched application data
-  const [loading, setLoading] = useState(true); // Loading state
-  const [currentTab, setCurrentTab] = useState("risk_values"); // To track the active tab
+  const [applicationData, setApplicationData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [currentTab, setCurrentTab] = useState("risk_values");
+  const [industryOptions, setIndustryOptions] = useState([]);
+  const [submitStatus, setSubmitStatus] = useState({ type: null, message: null });
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [submittedFormData, setSubmittedFormData] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchApplicationData = async () => {
       try {
         const response = await axios.post(
-            "https://sandbox.heraldapi.com/applications",
-            {
-              products:[ 
-                "prd_0050_herald_cyber",
-      "prd_la3v_atbay_cyber",
-      "prd_jk0g_cowbell_cyber"], // Example payload
+          "https://sandbox.heraldapi.com/applications",
+          {
+            products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
+          },
+          {
+            headers: {
+              Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
             },
-            {
-              headers: {
-                Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
-              },
-            }
-          );
+          }
+        );
 
         if (response.data && response.data.application) {
           setApplicationData(response.data.application);
+
+          const hasIndustryField = response.data.application.risk_values.some(
+            (field) => field.parameter_text.agent_facing_text === "Industry classification"
+          );
+          if (hasIndustryField) {
+            fetchIndustryOptions();
+          }
         } else {
           throw new Error("Invalid application data format received from API.");
         }
@@ -46,15 +57,111 @@ const DynamicForm = () => {
     fetchApplicationData();
   }, []);
 
+  const fetchIndustryOptions = async () => {
+    try {
+      const response = await axios.get("https://sandbox.heraldapi.com/classifications/naics_index_entries", {
+        headers: {
+          Accept: "application/json",
+          Authorization: "Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=",
+        },
+      });
+      if (response.data && response.data.classifications) {
+        const classifications = response.data.classifications.map((item) => ({
+          value: item.naics_2017_6_digit,
+          label: `${item.naics_2017_6_digit_description} (${item.naics_2017_6_digit})`,
+        }));
+        setIndustryOptions(classifications);
+      }
+    } catch (error) {
+      console.error("Error fetching industry classification data:", error);
+      message.error("Failed to fetch industry classification data.");
+    }
+  };
+
   const onFinish = async (values) => {
     try {
-      const response = await axios.post("https://sandbox.heraldapi.com/applications", values);
-      message.success("Form submitted successfully!");
-      console.log("API Response:", response.data);
+      setSubmitStatus({ type: null, message: null });
+      console.log("Submitting values:", values);
+
+      const formattedValues = {
+        products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
+        ...values
+      };
+
+      const response = await axios.post(
+        "https://sandbox.heraldapi.com/applications",
+        formattedValues,
+        {
+          headers: {
+            Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.data) {
+        setSubmitStatus({
+          type: 'success',
+          message: 'Application submitted successfully!'
+        });
+        setIsModalVisible(true);
+        console.log("Success response:", response.data);
+      }
     } catch (error) {
-      console.error("Error submitting form:", error);
-      message.error("Failed to submit the form. Please try again.");
+      console.error("Submission error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      setSubmitStatus({
+        type: 'error',
+        message: error.response?.data?.message || 'Failed to submit the form. Please try again.'
+      });
+      setIsModalVisible(true);
     }
+  };
+
+  const handleGetQuote = () => {
+    navigate('/free/quote', { 
+      state: { 
+        formData: submittedFormData, 
+        applicationData 
+      } 
+    });
+  };
+
+  const renderModalContent = () => {
+    const isSuccess = submitStatus.type === 'success';
+    
+    return (
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ 
+          fontSize: '24px', 
+          marginBottom: '16px',
+          color: isSuccess ? '#52c41a' : '#ff4d4f'
+        }}>
+          {isSuccess ? '✓' : '✕'}
+        </div>
+        <p style={{ 
+          fontSize: '16px',
+          marginBottom: '24px',
+          color: isSuccess ? '#52c41a' : '#ff4d4f'
+        }}>
+          {submitStatus.message}
+        </p>
+        <Space>
+          <Button onClick={() => setIsModalVisible(false)}>
+            Close
+          </Button>
+          {isSuccess && (
+            <Button type="primary" onClick={handleGetQuote}>
+              Get Quote
+            </Button>
+          )}
+        </Space>
+      </div>
+    );
   };
 
   const renderFormFields = (data) => {
@@ -62,7 +169,6 @@ const DynamicForm = () => {
       return <p>No fields available.</p>;
     }
 
-    // Group fields by their section
     const groupedSections = data.reduce((acc, field) => {
       const { section } = field;
       if (!acc[section]) {
@@ -73,97 +179,35 @@ const DynamicForm = () => {
     }, {});
 
     return (
-      <Form form={form} layout="vertical" onFinish={onFinish}>
-        {Object.entries(groupedSections).map(([sectionName, fields]) => (
-          <div key={sectionName} style={{ marginBottom: 24 }}>
-            <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
-            {fields.map((field) => {
-              const { risk_parameter_id, coverage_parameter_id, parameter_text, input_type, schema } = field;
-              const fieldKey = risk_parameter_id || coverage_parameter_id; // Use appropriate ID based on tab
-
-              switch (input_type) {
-                case "short_text":
-                  return (
-                    <Form.Item
-                      key={fieldKey}
-                      name={fieldKey}
-                      label={parameter_text.applicant_facing_text}
-                      rules={[
-                        { required: schema.min_length > 0, message: `Please enter ${parameter_text.applicant_facing_text}` },
-                        { min: schema.min_length, message: `Minimum length is ${schema.min_length}` },
-                        { max: schema.max_length, message: `Maximum length is ${schema.max_length}` },
-                      ]}
-                    >
-                      <Input placeholder={`Enter ${parameter_text.applicant_facing_text}`} />
-                    </Form.Item>
-                  );
-                case "integer":
-                  return (
-                    <Form.Item
-                      key={fieldKey}
-                      name={fieldKey}
-                      label={parameter_text.applicant_facing_text}
-                      rules={[{ required: true, message: `Please enter ${parameter_text.applicant_facing_text}` }]}
-                    >
-                      <InputNumber style={{ width: "100%" }} placeholder={`Enter ${parameter_text.applicant_facing_text}`} />
-                    </Form.Item>
-                  );
-                case "select_one":
-                  return (
-                    <Form.Item
-                      key={fieldKey}
-                      name={fieldKey}
-                      label={parameter_text.applicant_facing_text}
-                      rules={[{ required: true, message: `Please select ${parameter_text.applicant_facing_text}` }]}
-                    >
-                      <Select placeholder={`Select ${parameter_text.applicant_facing_text}`}>
-                        {schema.enum &&
-                          schema.enum.map((option) => (
-                            <Option key={option} value={option}>
-                              {option}
-                            </Option>
-                          ))}
-                      </Select>
-                    </Form.Item>
-                  );
-                case "date":
-                  return (
-                    <Form.Item
-                      key={fieldKey}
-                      name={fieldKey}
-                      label={parameter_text.applicant_facing_text}
-                      rules={[
-                        { required: true, message: `Please select ${parameter_text.applicant_facing_text}` },
-                        {
-                          validator: (_, value) => {
-                            if (!value) return Promise.resolve();
-                            const selectedDate = moment(value);
-                            const minDate = moment(schema.min_date);
-                            const maxDate = moment(schema.max_date);
-
-                            if (selectedDate.isBefore(minDate) || selectedDate.isAfter(maxDate)) {
-                              return Promise.reject(
-                                new Error(`Date must be between ${schema.min_date} and ${schema.max_date}`)
-                              );
-                            }
-
-                            return Promise.resolve();
-                          },
-                        },
-                      ]}
-                    >
-                      <DatePicker
-                        style={{ width: "100%" }}
-                        placeholder={`Select ${parameter_text.applicant_facing_text}`}
-                      />
-                    </Form.Item>
-                  );
-                default:
-                  return null;
-              }
-            })}
-          </div>
-        ))}
+      <Form form={form} layout="vertical" onFinish={onFinish}
+        onFinishFailed={(errorInfo) => {
+          console.log('Form validation failed:', errorInfo);
+          setSubmitStatus({
+            type: 'error',
+            message: 'Please fill in all required fields correctly.'
+          });
+          setIsModalVisible(true);
+        }}>
+        <Row gutter={16}>
+          {["Basic Information", "Risk Information"].map((sectionName) => (
+            <Col span={12} key={sectionName}>
+              {groupedSections[sectionName] && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
+                  {groupedSections[sectionName].map((field) => renderField(field))}
+                </div>
+              )}
+            </Col>
+          ))}
+        </Row>
+        {Object.entries(groupedSections)
+          .filter(([sectionName]) => !["Basic Information", "Risk Information"].includes(sectionName))
+          .map(([sectionName, fields]) => (
+            <div key={sectionName} style={{ marginBottom: 24 }}>
+              <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
+              {fields.map((field) => renderField(field))}
+            </div>
+          ))}
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Submit
@@ -171,6 +215,15 @@ const DynamicForm = () => {
         </Form.Item>
       </Form>
     );
+  };
+
+  const renderField = (field) => {
+    const { risk_parameter_id, coverage_parameter_id, parameter_text, input_type, schema, section } = field;
+    const fieldKey = risk_parameter_id || coverage_parameter_id;
+
+    
+
+   
   };
 
   if (loading) {
@@ -183,23 +236,35 @@ const DynamicForm = () => {
 
   const handleTabChange = (key) => {
     setCurrentTab(key);
-    form.resetFields(); // Reset form fields when switching tabs
+    form.resetFields();
   };
 
   return (
-    <Tabs defaultActiveKey="risk_values" onChange={handleTabChange}>
-      <TabPane tab="Risk Values" key="risk_values">
-        {renderFormFields(applicationData.risk_values)}
-      </TabPane>
-      <TabPane tab="Coverage Values" key="coverage_values">
-        {renderFormFields(applicationData.coverage_values)}
-      </TabPane>
-      <TabPane tab="Products" key="products">
-        {applicationData.products.map((item, index) => (
-          <li key={index}>{item}</li>
-        ))}
-      </TabPane>
-    </Tabs>
+    <>
+      <Tabs defaultActiveKey="risk_values" onChange={handleTabChange}>
+        <TabPane tab="Risk Values" key="risk_values">
+          {renderFormFields(applicationData.risk_values)}
+        </TabPane>
+        <TabPane tab="Coverage Values" key="coverage_values">
+          {renderFormFields(applicationData.coverage_values)}
+        </TabPane>
+        <TabPane tab="Products" key="products">
+          {applicationData.products.map((item, index) => (
+            <li key={index}>{item}</li>
+          ))}
+        </TabPane>
+      </Tabs>
+
+      <Modal
+        title={submitStatus.type === 'success' ? "Success!" : "Error"}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+        centered
+      >
+        {renderModalContent()}
+      </Modal>
+    </>
   );
 };
 
