@@ -1,0 +1,264 @@
+{
+    "id": "3e129c23-194e-4213-a39d-f52391a18d3f",
+    "product": {
+        "id": "prd_0050_herald_cyber",
+        "name": "Herald Cyber",
+        "product_line": "cyber",
+        "institution": {
+            "id": "ins_vbh3_herald",
+            "name": "Herald"
+        }
+    },
+    "status": "active",
+    "status_details": null,
+    "actions": null,
+    "portal_link": "https://sandbox.redirect.heraldapi.com/prd_0050_herald_cyber/3e129c23-194e-4213-a39d-f52391a18d3f/broker_portal",
+    "portal_links": [{
+            "uri": "https://www.example.com?quoteId=qruqg",
+            "type": "broker_portal"
+        }
+    ],
+    "insurers": [{
+            "naic_code": "24376",
+            "name": "Spinnaker Ins Co",
+            "quota_share": 100
+        }
+    ],
+    "submission_id": "6a1563aa-e405-4de3-bbcc-9ecdc2004d43",
+    "prices": {
+        "premium_before_taxes_and_fees": 4350,
+        "premium_with_taxes_and_fees": 4388,
+        "details": []
+    },
+    "price_details": {
+        "premium": {
+            "total": 4350,
+            "breakdown": null
+        },
+        "institution_surcharges": {
+            "total": null,
+            "breakdown": null
+        },
+        "government_surcharges": {
+            "total": null,
+            "breakdown": null
+        }
+    },
+    "producer": {
+        "id": "848c9e11-0de8-47fe-88bb-a87b86a7f8ed",
+        "name": "Kavivanan Muthaiyan",
+        "email": "kavivanan.muthaiyan@exavalu.com",
+        "enabled": true,
+        "external_id": null
+    },
+    "files": [{
+            "id": "f2de239d-969a-46ec-9cd2-7902b1361771",
+            "status": "available",
+            "text": "Quote Summary",
+            "type": "quote_summary"
+        }, {
+            "id": "8315c18c-f6b8-4c74-8f17-0c002fcce21e",
+            "status": "available",
+            "text": "Risk Assessment",
+            "type": "risk_assessment"
+        }, {
+            "id": "73d39c7b-12e9-42d3-9cb7-4d90c954c011",
+            "status": "available",
+            "text": "Application",
+            "type": "application"
+        }
+    ],
+    "coverage_values": [{
+            "coverage_parameter_id": "cvg_o3mw_cyb_effective_date",
+            "value": "2025-02-01",
+            "parameter_text": {
+                "applicant_facing_text": "Cyber Effective Date",
+                "agent_facing_text": "Cyber Effective Date"
+            },
+            "input_type": "date"
+        }, {
+            "coverage_parameter_id": "cvg_agj9_cyb_aggregate_limit",
+            "value": 2000000,
+            "parameter_text": {
+                "applicant_facing_text": "Aggregate Limit",
+                "agent_facing_text": "Aggregate Limit"
+            },
+            "input_type": "select_one"
+        }, {
+            "coverage_parameter_id": "cvg_mov6_cyb_social_engineering_limit",
+            "value": 250000,
+            "parameter_text": {
+                "applicant_facing_text": "Social Engineering Limit",
+                "agent_facing_text": "Social Engineering Limit"
+            },
+            "input_type": "select_one"
+        }, {
+            "coverage_parameter_id": "cvg_7fsk_cyb_aggregate_retention",
+            "value": 2500,
+            "parameter_text": {
+                "applicant_facing_text": "Aggregate Retention",
+                "agent_facing_text": "Aggregate Retention"
+            },
+            "input_type": "select_one"
+        }, {
+            "coverage_parameter_id": "cvg_orn9_cyb_waiting_period",
+            "value": 12,
+            "parameter_text": {
+                "applicant_facing_text": "Waiting Period (hours)",
+                "agent_facing_text": "Waiting Period (hours)"
+            },
+            "input_type": "select_one"
+        }, {
+            "coverage_parameter_id": "cvg_qd4i_cyb_retroactive_date",
+            "value": "1962-08-13",
+            "parameter_text": {
+                "applicant_facing_text": "Cyber Risk Retroactive Date",
+                "agent_facing_text": "Cyber Risk Retroactive Date"
+            },
+            "input_type": "date"
+        }, {
+            "coverage_parameter_id": "cvg_2u6v_cyb_ransomware_event_limit",
+            "value": null,
+            "parameter_text": {
+                "applicant_facing_text": "Ransomware Event Limit",
+                "agent_facing_text": "Ransomware Event Limit"
+            },
+            "input_type": "currency"
+        }, {
+            "coverage_parameter_id": "cvg_9ep4_cyb_ransomware_event_retention",
+            "value": null,
+            "parameter_text": {
+                "applicant_facing_text": "Ransomware Event Retention",
+                "agent_facing_text": "Ransomware Event Retention"
+            },
+            "input_type": "currency"
+        }, {
+            "coverage_parameter_id": "cvg_uov2_cyb_expiration_date",
+            "value": null,
+            "parameter_text": {
+                "applicant_facing_text": "Cyber Risk Expiration Date",
+                "agent_facing_text": "Cyber Risk Expiration Date"
+            },
+            "input_type": "date"
+        }
+    ],
+    "risk_values": [{
+            "risk_parameter_id": "rsk_m4p9_insured_name",
+            "value": "2024-12-11 Integration Test",
+            "parameter_text": {
+                "applicant_facing_text": "Business name",
+                "agent_facing_text": "Business name"
+            },
+            "input_type": "short_text"
+        }, {
+            "risk_parameter_id": "rsk_b3jm_2017_naics_index",
+            "value": "5njkkw",
+            "parameter_text": {
+                "applicant_facing_text": "Industry classification",
+                "agent_facing_text": "Industry classification"
+            },
+            "input_type": "short_text"
+        }, {
+            "risk_parameter_id": "rsk_k39d_number_of_employees",
+            "value": 3056803,
+            "parameter_text": {
+                "applicant_facing_text": "Number of employees",
+                "agent_facing_text": "Number of employees"
+            },
+            "input_type": "integer"
+        }, {
+            "risk_parameter_id": "rsk_vrb1_total_annual_revenue",
+            "value": 26572029,
+            "parameter_text": {
+                "applicant_facing_text": "Total annual revenue",
+                "agent_facing_text": "Total annual revenue"
+            },
+            "input_type": "currency"
+        }, {
+            "risk_parameter_id": "rsk_7ahp_has_domain",
+            "value": "no",
+            "parameter_text": {
+                "applicant_facing_text": "Do you have a company website or domain?",
+                "agent_facing_text": "Does the applicant have a company website or domain?"
+            },
+            "input_type": "select_one"
+        }, {
+            "risk_parameter_id": "rsk_h8oi_high_risk_industry_type",
+            "value": [
+                "Gambling",
+                "Cannabis"
+            ],
+            "parameter_text": {
+                "applicant_facing_text": "Are you engaged in any of the following business activities?",
+                "agent_facing_text": "Is the applicant engaged in any of the following business activities?"
+            },
+            "input_type": "select_many"
+        }, {
+            "risk_parameter_id": "rsk_a18w_stored_records_type",
+            "value": [
+                "Personal Information"
+            ],
+            "parameter_text": {
+                "applicant_facing_text": "Do you store, transmit, collect, or process any of the following information, not including employee information?",
+                "agent_facing_text": "Does the applicant store, transmit, collect, or process any of the following information, not including employee information?"
+            },
+            "input_type": "select_many"
+        }, {
+            "risk_parameter_id": "rsk_z356_pii_record_count",
+            "value": 959150784,
+            "parameter_text": {
+                "applicant_facing_text": "Estimated number of records categorized as Personalized Identifiable Information (PII)",
+                "agent_facing_text": "Estimated number of records categorized as Personalized Identifiable Information (PII)"
+            },
+            "input_type": "integer"
+        }, {
+            "risk_parameter_id": "rsk_jb26_cyb_has_claims_history",
+            "value": "yes",
+            "parameter_text": {
+                "applicant_facing_text": "Have you ever experienced any incidents, situations, allegations, or losses that have resulted in or could reasonably give rise to a claim, loss, or any legal or regulatory actions against you that would fall within the scope of a cyber insurance policy for which you are applying?",
+                "agent_facing_text": "Has the applicant ever experienced any incidents, situations, allegations, or losses that have resulted in or could reasonably give rise to a claim, loss, or any legal or regulatory actions against them that would fall within the scope of a cyber insurance policy for which the applicant is applying?"
+            },
+            "input_type": "select_one"
+        }, {
+            "risk_parameter_id": "rsk_o23k_cyb_has_claims_history_within_five_years",
+            "value": "no",
+            "parameter_text": {
+                "applicant_facing_text": "Did any occur within the last 5 years?",
+                "agent_facing_text": "Did any occur within the last 5 years?"
+            },
+            "input_type": "select_one"
+        }, {
+            "risk_parameter_id": "rsk_ggy8_cyb_warranty",
+            "value": "yes",
+            "parameter_text": {
+                "applicant_facing_text": "Are you aware of any circumstances that could reasonably give rise, to a claim, loss, or any legal or regulatory actions against you that would fall within the scope of a cyber insurance policy for which you are applying?",
+                "agent_facing_text": "Is the applicant aware of any circumstances that could reasonably give rise, to a claim, loss, or any legal or regulatory actions against them that would fall within the scope of a cyber insurance policy for which the applicant is applying?"
+            },
+            "input_type": "select_one"
+        }, {
+            "risk_parameter_id": "rsk_w6ug_herald_attestation",
+            "value": "agree",
+            "parameter_text": {
+                "applicant_facing_text": "I agree to the Herald Terms and Conditions",
+                "agent_facing_text": "The applicant agrees to the Herald Terms and Conditions",
+                "applicant_agree_to_text": "NOTICE TO THE APPLICANT - PLEASE READ CAREFULLY\n\nNo fact, circumstance or situation indicating the probability of a claim or action for which coverage may be afforded by the proposed insurance is now known by any person(s) or entity (ies) proposed for this insurance other than that which is disclosed in this application. It is agreed by all concerned that if there is knowledge of any such fact, circumstance or situation, any claim subsequently emanating therefrom shall be excluded from coverage under the proposed insurance.\n\nThe policy applied for is SOLELY AS STATED IN THE POLICY, if issued, which provides coverage on a claims made basis for ONLY THOSE CLAIMS THAT ARE FIRST MADE AGAINST THE INSURED DURING THE POLICY PERIOD, unless the extended reporting period option is exercised in accordance with the terms of the policy. The policy has specific provisions detailing claim reporting requirements.\n\nThe underwriting manager, Company or affiliates thereof are authorized to make any inquiry in connection with this application. Signing this application does not bind the Company to provide or the applicant to purchase the insurance.\n\nThis application, information submitted with this application and all previous applications and material changes thereto, of which the underwriting manager, Company or affiliates thereof receives notice, is on file with the underwriting manager, Company or affiliates thereof and is considered physically attached to and part of the policy, if issued. The underwriting manager, Company or affiliates thereof will have relied upon this application and all such attachments in issuing the policy. If the information in this application or any attachment materially changes between the date this application is signed and the effective date of the policy, the applicant will promptly notify the underwriting manager, Company or affiliates thereof, who may modify or withdraw any outstanding quotation or agreement to bind coverage.\n\nREPRESENTATION STATEMENT\n\nThe applicant(s) understands and accepts the notice stated above and declares that the information contained herein is true to the best of his or her knowledge and that it shall be the basis of the policy and deemed incorporated therein, should the Company evidence its acceptance of this application by issuance of a policy. The applicant(s) authorizes the release of claim information from any prior insurer to the underwriting manager, Company or affiliates thereof.\n\nApplication must be signed within 60 days of the proposed effective date.\n\nFRAUD WARNING\n\nAny person who knowingly and with intent to defraud any Insurance Company or another person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime and subjects the person to criminal and civil penalties. (Not applicable in AL, AR, CO, DC, FL, KS, KY, LA, MD,ME, MN, NJ, NM, NY, OH, OK, OR, PA, RI, TN, VA, VT, WA, and WV) (Insurance benefits may also be denied in LA, ME, TN, and VA.)\n\nSTATE FRAUD STATEMENTS\n\nApplicable in AL, AR, DC, LA, MD, NM, RI and WV: Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in Maryland only.\n\nApplicable in CO: It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.\n\nApplicable in FL and OK: Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in Florida only.\n\nApplicable in KS: Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.\n\nApplicable in KY, NY, OH and PA: Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties (not to exceed five thousand dollars and the stated value of the claim for each such violation)*. *Applies in New York only.",
+                "agent_agree_to_text": "NOTICE TO THE APPLICANT - PLEASE READ CAREFULLY\n\nNo fact, circumstance or situation indicating the probability of a claim or action for which coverage may be afforded by the proposed insurance is now known by any person(s) or entity (ies) proposed for this insurance other than that which is disclosed in this application. It is agreed by all concerned that if there is knowledge of any such fact, circumstance or situation, any claim subsequently emanating therefrom shall be excluded from coverage under the proposed insurance.\n\nThe policy applied for is SOLELY AS STATED IN THE POLICY, if issued, which provides coverage on a claims made basis for ONLY THOSE CLAIMS THAT ARE FIRST MADE AGAINST THE INSURED DURING THE POLICY PERIOD, unless the extended reporting period option is exercised in accordance with the terms of the policy. The policy has specific provisions detailing claim reporting requirements.\n\nThe underwriting manager, Company or affiliates thereof are authorized to make any inquiry in connection with this application. Signing this application does not bind the Company to provide or the applicant to purchase the insurance.\n\nThis application, information submitted with this application and all previous applications and material changes thereto, of which the underwriting manager, Company or affiliates thereof receives notice, is on file with the underwriting manager, Company or affiliates thereof and is considered physically attached to and part of the policy, if issued. The underwriting manager, Company or affiliates thereof will have relied upon this application and all such attachments in issuing the policy. If the information in this application or any attachment materially changes between the date this application is signed and the effective date of the policy, the applicant will promptly notify the underwriting manager, Company or affiliates thereof, who may modify or withdraw any outstanding quotation or agreement to bind coverage.\n\nREPRESENTATION STATEMENT\n\nThe applicant(s) understands and accepts the notice stated above and declares that the information contained herein is true to the best of his or her knowledge and that it shall be the basis of the policy and deemed incorporated therein, should the Company evidence its acceptance of this application by issuance of a policy. The applicant(s) authorizes the release of claim information from any prior insurer to the underwriting manager, Company or affiliates thereof.\n\nApplication must be signed within 60 days of the proposed effective date.\n\nFRAUD WARNING\n\nAny person who knowingly and with intent to defraud any Insurance Company or another person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime and subjects the person to criminal and civil penalties. (Not applicable in AL, AR, CO, DC, FL, KS, KY, LA, MD,ME, MN, NJ, NM, NY, OH, OK, OR, PA, RI, TN, VA, VT, WA, and WV) (Insurance benefits may also be denied in LA, ME, TN, and VA.)\n\nSTATE FRAUD STATEMENTS\n\nApplicable in AL, AR, DC, LA, MD, NM, RI and WV: Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in Maryland only.\n\nApplicable in CO: It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.\n\nApplicable in FL and OK: Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in Florida only.\n\nApplicable in KS: Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.\n\nApplicable in KY, NY, OH and PA: Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties (not to exceed five thousand dollars and the stated value of the claim for each such violation)*. *Applies in New York only."
+            },
+            "input_type": "agree_to"
+        }
+    ],
+    "classifications": [{
+            "id": "5njkkw",
+            "description": "In-built thermostats, filled system and bimetal types, manufacturing",
+            "naics_2017_6_digit": "334512",
+            "naics_2017_6_digit_description": "Automatic Environmental Control Manufacturing for Residential, Commercial, and Appliance Use"
+        }
+    ],
+    "bind_status": "available",
+    "quote_number": null,
+    "contacts": null,
+    "admitted": true,
+    "impersonated": false,
+    "created_at": "2024-12-11T06:15:43.451Z",
+    "updated_at": "2024-12-11T06:15:44.458Z"
+}
