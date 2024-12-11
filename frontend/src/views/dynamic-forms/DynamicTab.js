@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, InputNumber, Select, DatePicker, Button, message, Spin, Tabs, Row, Col, Checkbox, Alert,Space } from "antd";
+import { Form, Input, InputNumber, Select, DatePicker, Button, message, Spin, Tabs, Row, Col, Checkbox, Alert, Space, Modal } from "antd";
 import axios from "axios";
 import moment from "moment";
+
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -13,73 +14,72 @@ const DynamicForm = () => {
   const [currentTab, setCurrentTab] = useState("risk_values");
   const [industryOptions, setIndustryOptions] = useState([]);
   const [submitStatus, setSubmitStatus] = useState({ type: null, message: null });
-   useEffect(() => {
-      const fetchApplicationData = async () => {
-        try {
-          const response = await axios.post(
-            "https://sandbox.heraldapi.com/applications",
-            {
-              products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
-            },
-            {
-              headers: {
-                Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
-              },
-            }
-          );
-   
-          if (response.data && response.data.application) {
-            setApplicationData(response.data.application);
-   
-            // Check if Industry classification is part of the form and fetch options
-            const hasIndustryField = response.data.application.risk_values.some(
-              (field) => field.parameter_text.agent_facing_text === "Industry classification"
-            );
-            if (hasIndustryField) {
-              fetchIndustryOptions();
-            }
-          } else {
-            throw new Error("Invalid application data format received from API.");
-          }
-        } catch (error) {
-          console.error("Error fetching application data:", error);
-          message.error("Failed to fetch application data.");
-        } finally {
-          setLoading(false);
-        }
-      };
-   
-      fetchApplicationData();
-    }, []);
-   
-    const fetchIndustryOptions = async () => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchApplicationData = async () => {
       try {
-        const response = await axios.get("https://sandbox.heraldapi.com/classifications/naics_index_entries", {
-          headers: {
-            Accept: "application/json",
-            Authorization: "Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=",
+        const response = await axios.post(
+          "https://sandbox.heraldapi.com/applications",
+          {
+            products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
           },
-        });
-        if (response.data && response.data.classifications) {
-          // Map the industry classifications to a format usable in the dropdown
-          const classifications = response.data.classifications.map((item) => ({
-            value: item.naics_2017_6_digit,
-            label: `${item.naics_2017_6_digit_description} (${item.naics_2017_6_digit})`,
-          }));
-          setIndustryOptions(classifications);
+          {
+            headers: {
+              Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
+            },
+          }
+        );
+
+        if (response.data && response.data.application) {
+          setApplicationData(response.data.application);
+
+          const hasIndustryField = response.data.application.risk_values.some(
+            (field) => field.parameter_text.agent_facing_text === "Industry classification"
+          );
+          if (hasIndustryField) {
+            fetchIndustryOptions();
+          }
+        } else {
+          throw new Error("Invalid application data format received from API.");
         }
       } catch (error) {
-        console.error("Error fetching industry classification data:", error);
-        message.error("Failed to fetch industry classification data.");
+        console.error("Error fetching application data:", error);
+        message.error("Failed to fetch application data.");
+      } finally {
+        setLoading(false);
       }
+    };
+
+    fetchApplicationData();
+  }, []);
+
+  const fetchIndustryOptions = async () => {
+    try {
+      const response = await axios.get("https://sandbox.heraldapi.com/classifications/naics_index_entries", {
+        headers: {
+          Accept: "application/json",
+          Authorization: "Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=",
+        },
+      });
+      if (response.data && response.data.classifications) {
+        const classifications = response.data.classifications.map((item) => ({
+          value: item.naics_2017_6_digit,
+          label: `${item.naics_2017_6_digit_description} (${item.naics_2017_6_digit})`,
+        }));
+        setIndustryOptions(classifications);
+      }
+    } catch (error) {
+      console.error("Error fetching industry classification data:", error);
+      message.error("Failed to fetch industry classification data.");
     }
+  };
 
   const onFinish = async (values) => {
     try {
       setSubmitStatus({ type: null, message: null });
-      console.log("Submitting values:", values); // Debug log
+      console.log("Submitting values:", values);
 
-      // Add any missing required fields from schema
       const formattedValues = {
         products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
         ...values
@@ -101,6 +101,7 @@ const DynamicForm = () => {
           type: 'success',
           message: 'Application submitted successfully!'
         });
+        setIsModalVisible(true);
         console.log("Success response:", response.data);
       }
     } catch (error) {
@@ -114,8 +115,48 @@ const DynamicForm = () => {
         type: 'error',
         message: error.response?.data?.message || 'Failed to submit the form. Please try again.'
       });
+      setIsModalVisible(true);
     }
   };
+
+  const handleGetQuote = () => {
+    console.log("Getting quote...");
+    setIsModalVisible(false);
+  };
+
+  const renderModalContent = () => {
+    const isSuccess = submitStatus.type === 'success';
+    
+    return (
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ 
+          fontSize: '24px', 
+          marginBottom: '16px',
+          color: isSuccess ? '#52c41a' : '#ff4d4f'
+        }}>
+          {isSuccess ? '✓' : '✕'}
+        </div>
+        <p style={{ 
+          fontSize: '16px',
+          marginBottom: '24px',
+          color: isSuccess ? '#52c41a' : '#ff4d4f'
+        }}>
+          {submitStatus.message}
+        </p>
+        <Space>
+          <Button onClick={() => setIsModalVisible(false)}>
+            Close
+          </Button>
+          {isSuccess && (
+            <Button type="primary" onClick={handleGetQuote}>
+              Get Quote
+            </Button>
+          )}
+        </Space>
+      </div>
+    );
+  };
+
   const renderFormFields = (data) => {
     if (!data || data.length === 0) {
       return <p>No fields available.</p>;
@@ -130,11 +171,6 @@ const DynamicForm = () => {
       return acc;
     }, {});
 
-    const handleGetQuote = () => {
-      // Add your get quote logic here
-      console.log("Getting quote...");
-    };
-
     return (
       <Form form={form} layout="vertical" onFinish={onFinish}
         onFinishFailed={(errorInfo) => {
@@ -143,9 +179,9 @@ const DynamicForm = () => {
             type: 'error',
             message: 'Please fill in all required fields correctly.'
           });
+          setIsModalVisible(true);
         }}>
         <Row gutter={16}>
-          {/* Render Basic Information and Risk Information side by side */}
           {["Basic Information", "Risk Information"].map((sectionName) => (
             <Col span={12} key={sectionName}>
               {groupedSections[sectionName] && (
@@ -157,7 +193,6 @@ const DynamicForm = () => {
             </Col>
           ))}
         </Row>
-        {/* Render other sections normally */}
         {Object.entries(groupedSections)
           .filter(([sectionName]) => !["Basic Information", "Risk Information"].includes(sectionName))
           .map(([sectionName, fields]) => (
@@ -166,44 +201,10 @@ const DynamicForm = () => {
               {fields.map((field) => renderField(field))}
             </div>
           ))}
-       <Form.Item>
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
-            
-            {submitStatus.type && (
-              <div>
-                <Alert
-                  message={submitStatus.message}
-                  type={submitStatus.type}
-                  showIcon
-                  style={{
-                    marginTop: 16,
-                    marginBottom: 16,
-                    borderRadius: 4,
-                    ...(submitStatus.type === 'error' ? {
-                      backgroundColor: '#FEF2F2',
-                      border: '1px solid #FECACA',
-                      color: '#DC2626'
-                    } : {
-                      backgroundColor: '#f0f9ff',
-                      border: '1px solid #BAE6FD'
-                    })
-                  }}
-                />
-                {submitStatus.type === 'success' && (
-                  <Button 
-                    type="primary" 
-                    onClick={handleGetQuote}
-                    style={{ marginTop: 8 }}
-                  >
-                    Get Quote
-                  </Button>
-                )}
-              </div>
-            )}
-          </Space>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Submit
+          </Button>
         </Form.Item>
       </Form>
     );
@@ -485,19 +486,31 @@ const DynamicForm = () => {
   };
 
   return (
-    <Tabs defaultActiveKey="risk_values" onChange={handleTabChange}>
-      <TabPane tab="Risk Values" key="risk_values">
-        {renderFormFields(applicationData.risk_values)}
-      </TabPane>
-      <TabPane tab="Coverage Values" key="coverage_values">
-        {renderFormFields(applicationData.coverage_values)}
-      </TabPane>
-      <TabPane tab="Products" key="products">
-        {applicationData.products.map((item, index) => (
-          <li key={index}>{item}</li>
-        ))}
-      </TabPane>
-    </Tabs>
+    <>
+      <Tabs defaultActiveKey="risk_values" onChange={handleTabChange}>
+        <TabPane tab="Risk Values" key="risk_values">
+          {renderFormFields(applicationData.risk_values)}
+        </TabPane>
+        <TabPane tab="Coverage Values" key="coverage_values">
+          {renderFormFields(applicationData.coverage_values)}
+        </TabPane>
+        <TabPane tab="Products" key="products">
+          {applicationData.products.map((item, index) => (
+            <li key={index}>{item}</li>
+          ))}
+        </TabPane>
+      </Tabs>
+
+      <Modal
+        title={submitStatus.type === 'success' ? "Success!" : "Error"}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+        centered
+      >
+        {renderModalContent()}
+      </Modal>
+    </>
   );
 };
 
