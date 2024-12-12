@@ -122,7 +122,7 @@ const DynamicForm = () => {
   };
 
  const handleGetQuote = () => {
-  navigate('/free/quote', { 
+  navigate('/free/quotedetails', { 
     state: { 
       formData: form.getFieldValue(), 
       applicationData 

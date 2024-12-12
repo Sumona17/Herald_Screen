@@ -100,7 +100,16 @@ const MainRoutes = {
       element: <DynamicFormTab/>
     },
     {
-      path: 'free/quote',
+      path: '/free/quotecards',
+      element: (
+        <>
+          {console.log('Rendering QuotePage route')}
+          <QuotePage />
+        </>
+      )
+    },
+    {
+      path: '/free/quotedetails',
       element: (
         <>
           {console.log('Rendering QuotePage route')}
