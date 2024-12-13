@@ -8,7 +8,8 @@ import {
   message, 
   Typography,
   Tag,
-  Collapse 
+  Collapse, 
+  Spin
 } from 'antd';
 import jsPDF from 'jspdf';
 import axios from 'axios';
@@ -24,7 +25,7 @@ const QuotePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { formData, applicationData } = location.state || {};
-
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     // Fetch the data from the API using axios
     const fetchData = async () => {
@@ -37,6 +38,8 @@ const QuotePage = () => {
         setQuotes(response.data.quotes);
       } catch (error) {
         console.error("Error fetching data:", error);
+      }finally {
+        setLoading(false);
       }
     };
 
@@ -158,7 +161,7 @@ const QuotePage = () => {
       <div>
         {quotes.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '20px' }}>
-            No quotes available
+         <Spin size="large" style={{ display: "block", margin: "auto", marginTop: "20%" }} />;
           </div>
         ) : (
           quotes.map((quote) => (
