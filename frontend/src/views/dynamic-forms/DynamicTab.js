@@ -4,7 +4,6 @@ import axios from "axios";
 import moment from "moment";
 import { useNavigate } from 'react-router-dom';
 
-
 const { TabPane } = Tabs;
 const { Option } = Select;
 
@@ -16,6 +15,7 @@ const DynamicForm = () => {
   const [industryOptions, setIndustryOptions] = useState([]);
   const [submitStatus, setSubmitStatus] = useState({ type: null, message: null });
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [riskValuesData, setRiskValuesData] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,6 +56,7 @@ const DynamicForm = () => {
     fetchApplicationData();
   }, []);
 
+
   const fetchIndustryOptions = async () => {
     try {
       const response = await axios.get("https://sandbox.heraldapi.com/classifications/naics_index_entries", {
@@ -76,20 +77,37 @@ const DynamicForm = () => {
       message.error("Failed to fetch industry classification data.");
     }
   };
-
+  const handleNext = async () => {
+    try {
+      // Validate and save Risk Values data
+      const riskValues = await form.validateFields();
+      setRiskValuesData(riskValues);
+      
+      // Switch to Coverage Values tab
+      setCurrentTab("coverage_values");
+      form.resetFields();
+    } catch (errorInfo) {
+      console.log('Form validation failed:', errorInfo);
+      message.error('Please fill in all required fields correctly.');
+    }
+  };
   const onFinish = async (values) => {
     try {
       setSubmitStatus({ type: null, message: null });
-      console.log("Submitting values:", values);
-
-      const formattedValues = {
+      
+      // Combine Risk Values and Coverage Values
+      const combinedValues = {
+        ...riskValuesData,
+        ...values,
         products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
-        ...values
+        application_status: "complete"  // Set application status to complete
       };
+
+      console.log("Submitting combined values:", combinedValues);
 
       const response = await axios.post(
         "https://sandbox.heraldapi.com/applications",
-        formattedValues,
+        combinedValues,
         {
           headers: {
             Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
@@ -121,14 +139,14 @@ const DynamicForm = () => {
     }
   };
 
- const handleGetQuote = () => {
-  navigate('/free/quotedetails', { 
-    state: { 
-      formData: form.getFieldValue(), 
-      applicationData 
-    } 
-  });
-};
+  const handleGetQuote = () => {
+    navigate('/free/quotedetails', { 
+      state: { 
+        formData: {...riskValuesData, ...form.getFieldValue()}, 
+        applicationData 
+      } 
+    });
+  };
 
   const renderModalContent = () => {
     const isSuccess = submitStatus.type === 'success';
@@ -178,7 +196,10 @@ const DynamicForm = () => {
     }, {});
 
     return (
-      <Form form={form} layout="vertical" onFinish={onFinish}
+      <Form 
+        form={form} 
+        layout="vertical" 
+        onFinish={onFinish}
         onFinishFailed={(errorInfo) => {
           console.log('Form validation failed:', errorInfo);
           setSubmitStatus({
@@ -186,7 +207,8 @@ const DynamicForm = () => {
             message: 'Please fill in all required fields correctly.'
           });
           setIsModalVisible(true);
-        }}>
+        }}
+      >
         <Row gutter={16}>
           {["Basic Information", "Risk Information"].map((sectionName) => (
             <Col span={12} key={sectionName}>
@@ -207,15 +229,23 @@ const DynamicForm = () => {
               {fields.map((field) => renderField(field))}
             </div>
           ))}
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            Submit
-          </Button>
-        </Form.Item>
+        
+        {currentTab === "risk_values" ? (
+          <Form.Item>
+            <Button type="primary" onClick={handleNext}>
+              Next
+            </Button>
+          </Form.Item>
+        ) : (
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </Form.Item>
+        )}
       </Form>
     );
   };
-
   const renderField = (field) => {
     const { risk_parameter_id, coverage_parameter_id, parameter_text, input_type, schema, section } = field;
     const fieldKey = risk_parameter_id || coverage_parameter_id;
@@ -244,7 +274,7 @@ const DynamicForm = () => {
             valuePropName="checked" // Handle checkbox state
             rules={[
               {
-                required: true,
+                required: false,
                 message: "You must agree to the Terms and Conditions.",
               },
             ]}
@@ -264,7 +294,7 @@ const DynamicForm = () => {
               key={fieldKey}
               name={fieldKey}
               label={parameter_text.agent_facing_text}
-              rules={[{ required: true, message: `Please select ${parameter_text.agent_facing_text}` }]}
+              rules={[{ required: false, message: `Please select ${parameter_text.agent_facing_text}` }]}
             >
               <Select placeholder={`Select ${parameter_text.agent_facing_text}`}>
                 {industryOptions &&
@@ -284,7 +314,7 @@ const DynamicForm = () => {
             key={fieldKey}
             name={fieldKey}
             label={parameter_text.agent_facing_text}
-            rules={[{ required: true, message: `Please enter ${parameter_text.agent_facing_text}` }]}
+            rules={[{ required: false, message: `Please enter ${parameter_text.agent_facing_text}` }]}
           >
             <Input placeholder={`Enter ${parameter_text.agent_facing_text}`} />
           </Form.Item>
@@ -366,7 +396,7 @@ const DynamicForm = () => {
             name={fieldKey}
             label={parameter_text.agent_facing_text}
             rules={[
-              { required: true, message: `Please select ${parameter_text.agent_facing_text}` },
+              { required: false, message: `Please select ${parameter_text.agent_facing_text}` },
               {
                 validator: (_, value) => {
                   if (!value) return Promise.resolve();
@@ -401,7 +431,7 @@ const DynamicForm = () => {
                   name={fullKey}
                   label={propertySchema.title}
                   rules={[
-                    { required: isRequired, message: `Please enter ${propertySchema.title}` },
+                    { required: false, message: `Please enter ${propertySchema.title}` },
                     propertySchema.min_length && {
                       min: propertySchema.min_length,
                       message: `Minimum length is ${propertySchema.min_length}`,
@@ -439,7 +469,7 @@ const DynamicForm = () => {
             name={fieldKey}
             label={parameter_text.agent_facing_text}
             rules={[
-              { required: true, message: `Please enter ${parameter_text.agent_facing_text}` },
+              { required: false, message: `Please enter ${parameter_text.agent_facing_text}` },
               { type: "number", min: schema.minimum, max: schema.maximum, message: `Value must be between ${schema.minimum} and ${schema.maximum}` },
             ]}
           >
@@ -493,7 +523,10 @@ const DynamicForm = () => {
 
   return (
     <>
-      <Tabs defaultActiveKey="risk_values" onChange={handleTabChange}>
+      <Tabs 
+        activeKey={currentTab} 
+        onChange={handleTabChange}
+      >
         <TabPane tab="Risk Values" key="risk_values">
           {renderFormFields(applicationData.risk_values)}
         </TabPane>
