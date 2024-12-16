@@ -16,6 +16,7 @@ const DynamicForm = () => {
   const [submitStatus, setSubmitStatus] = useState({ type: null, message: null });
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [riskValuesData, setRiskValuesData] = useState({});
+  const [coverageValuesData, setCoverageValuesData] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,63 +91,68 @@ const DynamicForm = () => {
       console.log('Form validation failed:', errorInfo);
       message.error('Please fill in all required fields correctly.');
     }
-  };
-  const onFinish = async (values) => {
-    try {
-      setSubmitStatus({ type: null, message: null });
-      
-      // Combine Risk Values and Coverage Values
+};
+const handleSubmit = async () => {
+  try {
+      // Validate and save Coverage Values data
+      const coverageValues = await form.validateFields(
+          applicationData.coverage_values.map(
+              (field) => field.risk_parameter_id || field.coverage_parameter_id
+          )
+      );
+      setCoverageValuesData(coverageValues);
+
+      // Combine all form data
       const combinedValues = {
-        ...riskValuesData,
-        ...values,
-        products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
-        application_status: "complete"  // Set application status to complete
+          ...riskValuesData,
+          ...coverageValues,
+          products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
+          application_status: "complete" // Set application status to complete
       };
 
       console.log("Submitting combined values:", combinedValues);
 
       const response = await axios.post(
-        "https://sandbox.heraldapi.com/applications",
-        combinedValues,
-        {
-          headers: {
-            Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
-            'Content-Type': 'application/json',
-          },
-        }
+          "https://sandbox.heraldapi.com/applications",
+          combinedValues,
+          {
+              headers: {
+                  Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
+                  'Content-Type': 'application/json',
+              },
+          }
       );
 
       if (response.data) {
-        setSubmitStatus({
-          type: 'success',
-          message: 'Application submitted successfully!'
-        });
-        setIsModalVisible(true);
-        console.log("Success response:", response.data);
+          setSubmitStatus({
+              type: 'success',
+              message: 'Application submitted successfully!',
+          });
+          setIsModalVisible(true);
+          console.log("Success response:", response.data);
       }
-    } catch (error) {
+  } catch (error) {
       console.error("Submission error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
       });
 
       setSubmitStatus({
-        type: 'error',
-        message: error.response?.data?.message || 'Failed to submit the form. Please try again.'
+          type: 'error',
+          message: error.response?.data?.message || 'Failed to submit the form. Please try again.',
       });
       setIsModalVisible(true);
-    }
-  };
-
-  const handleGetQuote = () => {
-    navigate('/free/quotedetails', { 
+  }
+};
+const handleGetQuote = () => {
+  navigate('/free/quotedetails', { 
       state: { 
-        formData: {...riskValuesData, ...form.getFieldValue()}, 
-        applicationData 
+          formData: { ...riskValuesData, ...coverageValuesData }, 
+          applicationData 
       } 
-    });
-  };
+  });
+}
 
   const renderModalContent = () => {
     const isSuccess = submitStatus.type === 'success';
@@ -180,7 +186,6 @@ const DynamicForm = () => {
       </div>
     );
   };
-
   const renderFormFields = (data) => {
     if (!data || data.length === 0) {
       return <p>No fields available.</p>;
@@ -198,8 +203,7 @@ const DynamicForm = () => {
     return (
       <Form 
         form={form} 
-        layout="vertical" 
-        onFinish={onFinish}
+        layout="vertical"
         onFinishFailed={(errorInfo) => {
           console.log('Form validation failed:', errorInfo);
           setSubmitStatus({
@@ -238,7 +242,7 @@ const DynamicForm = () => {
           </Form.Item>
         ) : (
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" onClick={handleSubmit}>
               Submit
             </Button>
           </Form.Item>
@@ -420,7 +424,7 @@ const DynamicForm = () => {
         );
       case "address":
         return (
-          <div key={fieldKey}>
+          <div key={fieldKey}> 
             <h4>{parameter_text.agent_facing_text}</h4>
             {Object.entries(schema.properties).map(([key, propertySchema]) => {
               const fullKey = `${fieldKey}.${key}`;
