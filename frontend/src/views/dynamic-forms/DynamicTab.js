@@ -83,7 +83,7 @@ const DynamicForm = () => {
       // Validate and save Risk Values data
       const riskValues = await form.validateFields();
       setRiskValuesData(riskValues);
-      
+
       // Switch to Coverage Values tab
       setCurrentTab("coverage_values");
       form.resetFields();
@@ -91,82 +91,190 @@ const DynamicForm = () => {
       console.log('Form validation failed:', errorInfo);
       message.error('Please fill in all required fields correctly.');
     }
-};
-const handleSubmit = async () => {
-  try {
+  };
+  const handleSubmit = async () => {
+    try {
       // Validate and save Coverage Values data
       const coverageValues = await form.validateFields(
-          applicationData.coverage_values.map(
-              (field) => field.risk_parameter_id || field.coverage_parameter_id
-          )
+        applicationData.coverage_values.map(
+          (field) => field.risk_parameter_id || field.coverage_parameter_id
+        )
       );
       setCoverageValuesData(coverageValues);
 
       // Combine all form data
       const combinedValues = {
-          ...riskValuesData,
-          ...coverageValues,
-          products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
-          application_status: "complete" // Set application status to complete
+        ...riskValuesData,
+        ...coverageValues,
+        products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
+        application_status: "complete" // Set application status to complete
       };
 
       console.log("Submitting combined values:", combinedValues);
 
       const response = await axios.post(
-          "https://sandbox.heraldapi.com/applications",
-          combinedValues,
-          {
-              headers: {
-                  Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
-                  'Content-Type': 'application/json',
-              },
-          }
+        "https://sandbox.heraldapi.com/applications",
+        combinedValues,
+        {
+          headers: {
+            Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
+            'Content-Type': 'application/json',
+          },
+        }
       );
 
       if (response.data) {
-          setSubmitStatus({
-              type: 'success',
-              message: 'Application submitted successfully!',
-          });
-          setIsModalVisible(true);
-          console.log("Success response:", response.data);
+        setSubmitStatus({
+          type: 'success',
+          message: 'Application submitted successfully!',
+        });
+        setIsModalVisible(true);
+        console.log("Success response:", response.data);
       }
-  } catch (error) {
+    } catch (error) {
       console.error("Submission error details:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
       });
 
       setSubmitStatus({
-          type: 'error',
-          message: error.response?.data?.message || 'Failed to submit the form. Please try again.',
+        type: 'error',
+        message: error.response?.data?.message || 'Failed to submit the form. Please try again.',
       });
       setIsModalVisible(true);
+    }
+  };
+  const handleGetQuote = () => {
+    navigate('/free/quotedetails', {
+      state: {
+        formData: { ...riskValuesData, ...coverageValuesData },
+        applicationData
+      }
+    });
   }
-};
-const handleGetQuote = () => {
-  navigate('/free/quotedetails', { 
-      state: { 
-          formData: { ...riskValuesData, ...coverageValuesData }, 
-          applicationData 
-      } 
-  });
-}
+
+  const handlePrefill = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        "https://sandbox.heraldapi.com/applications/f835ece6-bb01-4653-bd53-bbb58d99f2fc",
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: "Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=",
+          },
+        }
+      );
+  
+      if (response.data && response.data.application) {
+        const { risk_values = [], coverage_values = [] } = response.data.application;
+  
+        console.log("Risk Values:", risk_values);
+        console.log("Coverage Values:", coverage_values);
+  
+        const prefillData = {};
+  
+        const processFields = (fields, type) => {
+          console.log(`Processing ${type} Fields:`, fields);
+  
+          fields.forEach((field) => {
+            const { risk_parameter_id, coverage_parameter_id, input_type, value } = field;
+            const fieldKey = risk_parameter_id || coverage_parameter_id;
+  
+            if (!fieldKey) {
+              console.warn(`Missing fieldKey for ${type} field:`, field);
+              return;
+            }
+  
+            // Use value directly if present, fallback to defaults otherwise
+            if (value !== undefined) {
+              prefillData[fieldKey] = value;
+            } else {
+              switch (input_type) {
+                case "short_text":
+                  prefillData[fieldKey] = `Sample ${field.parameter_text?.agent_facing_text || "Text"}`;
+                  break;
+                case "integer":
+                case "number":
+                  prefillData[fieldKey] = field.schema?.minimum || 1000;
+                  break;
+                case "email":
+                  prefillData[fieldKey] = `sample_${Math.random().toString(36).substring(7)}@example.com`;
+                  break;
+                case "phone":
+                  prefillData[fieldKey] = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+                  break;
+                case "select_one":
+                  if (field.schema?.enum?.length > 0) {
+                    prefillData[fieldKey] = field.schema.enum[0];
+                  }
+                  break;
+                case "select_many":
+                  if (field.schema?.items?.enum?.length > 0) {
+                    prefillData[fieldKey] = [field.schema.items.enum[0]];
+                  }
+                  break;
+                case "date":
+                  prefillData[fieldKey] = moment().format("YYYY-MM-DD");
+                  break;
+                case "address":
+                  if (field.schema?.properties) {
+                    Object.keys(field.schema.properties).forEach((key) => {
+                      const subFieldKey = `${fieldKey}.${key}`;
+                      const propertySchema = field.schema.properties[key];
+                      prefillData[subFieldKey] =
+                        propertySchema?.enum?.[0] || `Sample ${propertySchema?.title || key}`;
+                    });
+                  }
+                  break;
+                case "currency":
+                  prefillData[fieldKey] = field.schema?.minimum || 1000;
+                  break;
+                default:
+                  prefillData[fieldKey] = `Sample ${field.parameter_text?.agent_facing_text || "Field"}`;
+              }
+            }
+          });
+        };
+  
+        // Process both risk and coverage values
+        processFields(risk_values, "Risk");
+        processFields(coverage_values, "Coverage");
+  
+        console.log("Prefill Data After Processing:", prefillData);
+  
+        // Apply prefilled values to the form
+        form.setFieldsValue(prefillData);
+        message.success("Form prefilled successfully!");
+        window.scrollTo(0, 0);
+      } else {
+        throw new Error("Invalid API response format.");
+      }
+    } catch (error) {
+      console.error("Error during prefill:", error);
+      message.error("Failed to prefill the form.");
+    } finally {
+      setLoading(false);
+    }
+  };
+   
+  
+  
 
   const renderModalContent = () => {
     const isSuccess = submitStatus.type === 'success';
-    
+
     return (
       <div style={{ textAlign: 'center' }}>
-        <div style={{ 
-          fontSize: '24px', 
+        <div style={{
+          fontSize: '24px',
           marginBottom: '16px',
           color: isSuccess ? '#52c41a' : '#ff4d4f'
         }}>
           {isSuccess ? '✓' : '✕'}
         </div>
-        <p style={{ 
+        <p style={{
           fontSize: '16px',
           marginBottom: '24px',
           color: isSuccess ? '#52c41a' : '#ff4d4f'
@@ -201,8 +309,8 @@ const handleGetQuote = () => {
     }, {});
 
     return (
-      <Form 
-        form={form} 
+      <Form
+        form={form}
         layout="vertical"
         onFinishFailed={(errorInfo) => {
           console.log('Form validation failed:', errorInfo);
@@ -233,12 +341,17 @@ const handleGetQuote = () => {
               {fields.map((field) => renderField(field))}
             </div>
           ))}
-        
+
         {currentTab === "risk_values" ? (
-          <Form.Item>
-            <Button type="primary" onClick={handleNext}>
-              Next
-            </Button>
+          <Form.Item style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Space>
+              <Button type="primary" onClick={handleNext}>
+                Next
+              </Button>
+              <Button type="default" onClick={handlePrefill}>
+                Prefill 
+              </Button>
+            </Space>
           </Form.Item>
         ) : (
           <Form.Item>
@@ -311,7 +424,7 @@ const handleGetQuote = () => {
             </Form.Item>
           );
         }
-     
+
         // Default `short_text` case for other fields
         return (
           <Form.Item
@@ -323,7 +436,7 @@ const handleGetQuote = () => {
             <Input placeholder={`Enter ${parameter_text.agent_facing_text}`} />
           </Form.Item>
         );
-     
+
       case "integer":
         return (
           <Form.Item
@@ -424,7 +537,7 @@ const handleGetQuote = () => {
         );
       case "address":
         return (
-          <div key={fieldKey}> 
+          <div key={fieldKey}>
             <h4>{parameter_text.agent_facing_text}</h4>
             {Object.entries(schema.properties).map(([key, propertySchema]) => {
               const fullKey = `${fieldKey}.${key}`;
@@ -527,8 +640,8 @@ const handleGetQuote = () => {
 
   return (
     <>
-      <Tabs 
-        activeKey={currentTab} 
+      <Tabs
+        activeKey={currentTab}
         onChange={handleTabChange}
       >
         <TabPane tab="Risk Values" key="risk_values">
