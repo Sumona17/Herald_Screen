@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, InputNumber, Select, DatePicker, Button, message, Spin, Tabs, Row, Col, Checkbox, Alert, Space, Modal } from "antd";
+import { Form, Input, InputNumber, Select, DatePicker, Button, message, Spin, Tabs, Row, Col, Checkbox, Modal, Space } from "antd";
 import axios from "axios";
 import moment from "moment";
 import { useNavigate } from 'react-router-dom';
 import MapView from "./Map";
+import dayjs from "dayjs"
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -16,8 +17,10 @@ const DynamicForm = () => {
   const [industryOptions, setIndustryOptions] = useState([]);
   const [submitStatus, setSubmitStatus] = useState({ type: null, message: null });
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
   const [riskValuesData, setRiskValuesData] = useState({});
   const [coverageValuesData, setCoverageValuesData] = useState({});
+  const [finalSubmissionData, setFinalSubmissionData] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,65 +90,221 @@ const DynamicForm = () => {
 
       // Switch to Coverage Values tab
       setCurrentTab("coverage_values");
-      form.resetFields();
+      // form.resetFields();
     } catch (errorInfo) {
       console.log('Form validation failed:', errorInfo);
       message.error('Please fill in all required fields correctly.');
     }
   };
-  const handleSubmit = async () => {
+ const handleSubmit = async () => {
+  try {
+    // Validate and save Coverage Values data
+    const coverageValues = await form.validateFields(
+      applicationData.coverage_values.map(
+        (field) => field.coverage_parameter_id
+      )
+    );
+
+    // Validate Risk Values data
+    const riskValues = await form.validateFields(
+      applicationData.risk_values.map(
+        (field) => field.risk_parameter_id
+      )
+    );
+
+    // Prepare the update payload matching the JSON structure
+    const updatePayload = {
+      coverage_values: [
+        { coverage_parameter_id: "cvg_o3mw_cyb_effective_date", value: coverageValues["cvg_o3mw_cyb_effective_date"] || "2025-01-22" },
+        { coverage_parameter_id: "cvg_agj9_cyb_aggregate_limit", value: coverageValues["cvg_agj9_cyb_aggregate_limit"] || 2000000 },
+        { coverage_parameter_id: "cvg_64oi_cyb_business_income_coverage_limit", value: coverageValues["cvg_64oi_cyb_business_income_coverage_limit"] || 250000 },
+        { coverage_parameter_id: "cvg_mov6_cyb_social_engineering_limit", value: coverageValues["cvg_mov6_cyb_social_engineering_limit"] || 1000000 },
+        { coverage_parameter_id: "cvg_7fsk_cyb_aggregate_retention", value: coverageValues["cvg_7fsk_cyb_aggregate_retention"] || 2500 },
+        { coverage_parameter_id: "cvg_orn9_cyb_waiting_period", value: coverageValues["cvg_orn9_cyb_waiting_period"] || 8 },
+        { coverage_parameter_id: "cvg_4sh1_cyb_social_engineering_deductible", value: coverageValues["cvg_4sh1_cyb_social_engineering_deductible"] || 65511 },
+        { coverage_parameter_id: "cvg_ckn4_cyb_per_claim_retention", value: coverageValues["cvg_ckn4_cyb_per_claim_retention"] || 914708 },
+        { coverage_parameter_id: "cvg_qd4i_cyb_retroactive_date", value: coverageValues["cvg_qd4i_cyb_retroactive_date"] || "1953-10-09" },
+        { coverage_parameter_id: "cvg_lw22_cyb_computer_fraud_endorsement", value: coverageValues["cvg_lw22_cyb_computer_fraud_endorsement"] || "yes" }
+      ],
+      risk_values: [
+        { risk_parameter_id: "rsk_m4p9_insured_name", value: riskValues["rsk_m4p9_insured_name"] || "Anwesha Bose" },
+        { risk_parameter_id: "rsk_voe4_cyb_security_officer", value: riskValues["rsk_voe4_cyb_security_officer"] || "yes" },
+        { risk_parameter_id: "rsk_t79b_insured_contact_name", value: riskValues["rsk_t79b_insured_contact_name"] || "nlopRJgaxtYOieHXpmUmrvXrjIzZLhnLhpmUfiKbQKsHKOcyddnNXlwdkxVc" },
+        { risk_parameter_id: "rsk_5p6w_insured_contact_email", value: riskValues["rsk_5p6w_insured_contact_email"] || "Roberta.Hermiston@gmail.com" },
+        { risk_parameter_id: "rsk_14kt_insured_contact_phone", value: riskValues["rsk_14kt_insured_contact_phone"] || "0554089110" },
+        { risk_parameter_id: "rsk_tvm3_mailing_address", value: riskValues["rsk_tvm3_mailing_address"] || {
+          line1: "6965 Grove Road",
+          organization: "Metz - Borer", 
+          city: "San Francisco", 
+          state: "MI", 
+          postal_code: "97275", 
+          country_code: "USA"
+        }},
+        { risk_parameter_id: "rsk_b3jm_2017_naics_index", value: riskValues["rsk_b3jm_2017_naics_index"] || "uxwi4q" },
+        { risk_parameter_id: "rsk_k39d_number_of_employees", value: riskValues["rsk_k39d_number_of_employees"] || 3597033 },
+        { risk_parameter_id: "rsk_vrb1_total_annual_revenue", value: riskValues["rsk_vrb1_total_annual_revenue"] || 568883231 },
+        { risk_parameter_id: "rsk_4b4x_years_of_operation", value: riskValues["rsk_4b4x_years_of_operation"] || 908 },
+        { risk_parameter_id: "rsk_6onk_entity_type", value: riskValues["rsk_6onk_entity_type"] || "Independent" },
+        { risk_parameter_id: "rsk_7ahp_has_domain", value: riskValues["rsk_7ahp_has_domain"] || "yes" },
+        { risk_parameter_id: "rsk_dy7r_domain_names", value: riskValues["rsk_dy7r_domain_names"] || "www.extraneous-text.biz", instance: "domain_names_1" },
+        { risk_parameter_id: "rsk_2i59_ownership_type", value: riskValues["rsk_2i59_ownership_type"] || "Non-Corporates" },
+        { risk_parameter_id: "rsk_h8oi_high_risk_industry_type", value: riskValues["rsk_h8oi_high_risk_industry_type"] || [
+          "Payment Processing (e.g., as a payment processor, merchant acquirer, or Point of Sale system vendor)",
+          "Gambling",
+          "Adult Content",
+          "Managed IT service provider (MSP or MSSP)",
+          "Cannabis",
+          "Debt collection agency"
+        ]},
+        { risk_parameter_id: "rsk_a18w_stored_records_type", value: riskValues["rsk_a18w_stored_records_type"] || ["None of the above"] },
+        { risk_parameter_id: "rsk_e73e_cyb_authenticating_fund_transfers", value: riskValues["rsk_e73e_cyb_authenticating_fund_transfers"] || "no" },
+        { risk_parameter_id: "rsk_tw5r_dual_authentication", value: riskValues["rsk_tw5r_dual_authentication"] || "For all requests" },
+        { risk_parameter_id: "rsk_zk4f_cyb_verifies_bank_accounts", value: riskValues["rsk_zk4f_cyb_verifies_bank_accounts"] || "yes" },
+        { risk_parameter_id: "rsk_d6el_secure_backup", value: riskValues["rsk_d6el_secure_backup"] || "yes" },
+        { risk_parameter_id: "rsk_y8ve_secure_backup_offline", value: riskValues["rsk_y8ve_secure_backup_offline"] || "no" },
+        { risk_parameter_id: "rsk_64p7_data_encryption", value: riskValues["rsk_64p7_data_encryption"] || ["De-identify sensitive data at rest"] },
+        { risk_parameter_id: "rsk_5m1o_cyb_cloud_storage", value: riskValues["rsk_5m1o_cyb_cloud_storage"] || "yes" },
+        { risk_parameter_id: "rsk_un9n_network_authentication", value: riskValues["rsk_un9n_network_authentication"] || [
+          "All web-based email accounts",
+          "Local and remote access to privileged user/network administrator accounts"
+        ]},
+        { risk_parameter_id: "rsk_6ril_cyb_security_training", value: riskValues["rsk_6ril_cyb_security_training"] || "yes" },
+        { risk_parameter_id: "rsk_s9i6_is_franchise", value: riskValues["rsk_s9i6_is_franchise"] || "yes" },
+        { risk_parameter_id: "rsk_jb26_cyb_has_claims_history", value: riskValues["rsk_jb26_cyb_has_claims_history"] || "yes" },
+        { risk_parameter_id: "rsk_o23k_cyb_has_claims_history_within_five_years", value: riskValues["rsk_o23k_cyb_has_claims_history_within_five_years"] || "yes" },
+        { risk_parameter_id: "rsk_78cv_cyb_claim_event", value: riskValues["rsk_78cv_cyb_claim_event"] || {
+          amount: 71680852,
+          description: "extend visionary e-business claim",
+          // date: moment("2023-01-23"),
+        }, instance: "cyb_claim_event_1" },
+        { risk_parameter_id: "rsk_ggy8_cyb_warranty", value: riskValues["rsk_ggy8_cyb_warranty"] || "yes" },
+        { risk_parameter_id: "rsk_w6ug_herald_attestation", value: riskValues["rsk_w6ug_herald_attestation"] || "agree" }
+      ],
+      products: [
+        "prd_0050_herald_cyber", 
+        "prd_la3v_atbay_cyber", 
+        "prd_jk0g_cowbell_cyber"
+      ]
+    };
+
+    console.log("Updating application with payload:", JSON.stringify(updatePayload, null, 2));
+
+    // Call PUT method to update application
+    const updateResponse = await axios.put(
+      `https://sandbox.heraldapi.com/applications/b110ff4b-e28a-4a8f-9d6a-84a1e1d21328`, 
+      updatePayload,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: 'Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw='
+        },
+      }
+    );
+
+    if (updateResponse.data) {
+      // Store the update response for submission
+      setFinalSubmissionData(updateResponse.data);
+      
+      // Open confirmation modal
+      setIsConfirmationModalVisible(true);
+    }
+
+  } catch (error) {
+    console.error("Full error object:", error);
+    
+    // Detailed error logging
+    if (error.response) {
+      console.error("Error response data:", error.response.data);
+      console.error("Error response status:", error.response.status);
+      console.error("Error response headers:", error.response.headers);
+    }
+
+    // More comprehensive error handling
+    const errorMessage = error.response?.data?.errors?.[0]?.message || 
+                         error.response?.data?.message || 
+                         'Failed to update the application. Please try again.';
+
+    setSubmitStatus({
+      type: 'error',
+      message: errorMessage,
+    });
+    
+    setIsModalVisible(true);
+  }
+};
+  const handleFinalSubmission = async () => {
     try {
-      // Validate and save Coverage Values data
-      const coverageValues = await form.validateFields(
-        applicationData.coverage_values.map(
-          (field) => field.risk_parameter_id || field.coverage_parameter_id
-        )
-      );
-      setCoverageValuesData(coverageValues);
-
-      // Combine all form data
-      const combinedValues = {
-        ...riskValuesData,
-        ...coverageValues,
-        products: ["prd_0050_herald_cyber", "prd_la3v_atbay_cyber", "prd_jk0g_cowbell_cyber"],
-        application_status: "complete" // Set application status to complete
+      // Predefined products list
+      const products = [
+        "prd_0050_herald_cyber", 
+        "prd_la3v_atbay_cyber", 
+        "prd_jk0g_cowbell_cyber"
+      ];
+  
+      // Prepare submission payload
+      const submissionPayload = {
+        // id: finalSubmissionData.id, // Use application ID from update response
+        // // products: products,
+        // producer_id: "61584f10-c8ba-42bc-9cf2-c40cda1fcfe8"
+        
+          "producer_id": "61584f10-c8ba-42bc-9cf2-c40cda1fcfe8",
+          "application": {
+            "id": "b110ff4b-e28a-4a8f-9d6a-84a1e1d21328"
+          }
+        
       };
-
-      console.log("Submitting combined values:", combinedValues);
-
-      const response = await axios.post(
-        "https://sandbox.heraldapi.com/applications",
-        combinedValues,
+  
+      // Close confirmation modal
+      setIsConfirmationModalVisible(false);
+  
+      // Call POST method for submission
+      const submissionResponse = await axios.post(
+        "https://sandbox.heraldapi.com/submissions",
+        submissionPayload,
         {
           headers: {
-            Authorization: `Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=`,
             'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: 'Bearer E4xGG8aD+6kcbID50Z7dfntunn8wsHvXKxb5gBB1pdw=',
+            flexible_submissions: ''
           },
         }
       );
-
-      if (response.data) {
+  
+      if (submissionResponse.data) {
         setSubmitStatus({
           type: 'success',
           message: 'Application submitted successfully!',
         });
         setIsModalVisible(true);
-        console.log("Success response:", response.data);
+        console.log("Submission Success response:", submissionResponse.data);
       }
     } catch (error) {
-      console.error("Submission error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
-
+      console.error("Full error object:", error);
+      
+      // Detailed error logging
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+        console.error("Error response status:", error.response.status);
+        console.error("Error response headers:", error.response.headers);
+      }
+  
+      // More comprehensive error handling
+      const errorMessage = error.response?.data?.errors?.[0]?.message || 
+                           error.response?.data?.message || 
+                           'Failed to submit the application. Please try again.';
+  
       setSubmitStatus({
         type: 'error',
-        message: error.response?.data?.message || 'Failed to submit the form. Please try again.',
+        message: errorMessage,
       });
+      
       setIsModalVisible(true);
     }
   };
+  
+
   const handleGetQuote = () => {
     navigate('/free/quotedetails', {
       state: {
@@ -217,7 +376,9 @@ const DynamicForm = () => {
                   }
                   break;
                 case "date":
-                  prefillData[fieldKey] = moment().format("YYYY-MM-DD");
+                  console.log("Date ");
+                  prefillData[fieldKey] = value;
+                  console.log("Date Values",value);
                   break;
                 case "address":
                   if (field.schema?.properties) {
@@ -295,6 +456,26 @@ const DynamicForm = () => {
       </div>
     );
   };
+  const renderConfirmationModal = () => {
+    return (
+      <Modal
+        title="Confirm Submission"
+        open={isConfirmationModalVisible}
+        onCancel={() => setIsConfirmationModalVisible(false)}
+        footer={[
+          <Button key="back" onClick={() => setIsConfirmationModalVisible(false)}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleFinalSubmission}>
+            Confirm Submission
+          </Button>
+        ]}
+      >
+        <p>Are you sure you want to submit the application?</p>
+        <p>Please review all details before confirming.</p>
+      </Modal>
+    );
+  };
   const renderFormFields = (data) => {
     if (!data || data.length === 0) {
       return <p>No fields available.</p>;
@@ -322,36 +503,32 @@ const DynamicForm = () => {
           setIsModalVisible(true);
         }}
       >
-      {currentTab === "risk_values" ? (
-          // Risk Values Tab Content
-          <Row gutter={16}>
-            {["Basic Information", "Risk Information"].map((sectionName) => (
-              <Col span={12} key={sectionName}>
-                <div style={{ marginBottom: 24 }}>
-                  <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
-                  {groupedSections[sectionName]?.map((field) => renderField(field))}
-                  {sectionName === "Risk Information" && (
-                    <div style={{ marginTop: 16 }}>
-                      <MapView />
-                    </div>
-                  )}
-                </div>
-              </Col>
-            ))}
-          </Row>
-        ) : (
-          // Coverage Values Tab Content
-          <>
-            {Object.entries(groupedSections)
-              .filter(([sectionName]) => !["Basic Information", "Risk Information"].includes(sectionName))
-              .map(([sectionName, fields]) => (
-                <div key={sectionName} style={{ marginBottom: 24 }}>
-                  <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
-                  {fields.map((field) => renderField(field))}
-                </div>
-              ))}
-          </>
-        )}
+        <Row gutter={16}>
+          {["Basic Information", "Risk Information"].map((sectionName) => (
+            <Col span={12} key={sectionName}>
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
+                {groupedSections[sectionName]?.map((field) => renderField(field))}
+                {/* Only show MapView in Risk Information section AND when currentTab is risk_values */}
+                {sectionName === "Risk Information" && currentTab === "risk_values" && (
+                  <div style={{ marginTop: 16 }}>
+                    <MapView />
+                  </div>
+                )}
+              </div>
+            </Col>
+          ))}
+        </Row>
+        {Object.entries(groupedSections)
+          .filter(([sectionName]) => !["Basic Information", "Risk Information"].includes(sectionName))
+          .map(([sectionName, fields]) => (
+            <div key={sectionName} style={{ marginBottom: 24 }}>
+              <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
+              {fields.map((field) => renderField(field))}
+            </div>
+          ))}
+
+      
         {currentTab === "risk_values" ? (
           <Form.Item style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Space>
@@ -635,6 +812,7 @@ const DynamicForm = () => {
     }
   };
 
+
   if (loading) {
     return <Spin size="large" style={{ display: "block", margin: "auto", marginTop: "20%" }} />;
   }
@@ -676,6 +854,8 @@ const DynamicForm = () => {
       >
         {renderModalContent()}
       </Modal>
+
+      {renderConfirmationModal()}
     </>
   );
 };

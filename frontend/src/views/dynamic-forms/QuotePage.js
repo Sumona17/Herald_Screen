@@ -52,8 +52,8 @@ const QuotePage = () => {
         return <Tag color="red">Declined</Tag>;
       case "rejected":
         return <Tag color="red">Rejected</Tag>;
-      case "referral":
-        return <Tag color="purple">Referral</Tag>;
+      case "active":
+        return <Tag color="green">Success</Tag>;
       default:
         return null;
     }
