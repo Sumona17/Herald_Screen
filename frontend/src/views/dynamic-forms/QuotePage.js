@@ -26,6 +26,7 @@ const QuotePage = () => {
   const navigate = useNavigate();
   const { formData, applicationData } = location.state || {};
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     // Fetch the data from the API using axios
     const fetchData = async () => {
@@ -38,7 +39,7 @@ const QuotePage = () => {
         setQuotes(response.data.quotes);
       } catch (error) {
         console.error("Error fetching data:", error);
-      }finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -48,12 +49,12 @@ const QuotePage = () => {
 
   const renderStatusTag = (status) => {
     switch (status) {
+      case "active":
+        return <Tag color="green">Success</Tag>;
       case "declined":
         return <Tag color="red">Declined</Tag>;
       case "rejected":
         return <Tag color="red">Rejected</Tag>;
-      case "active":
-        return <Tag color="green">Success</Tag>;
       default:
         return null;
     }
@@ -72,13 +73,14 @@ const QuotePage = () => {
         formData: location.state?.formData, 
         applicationData: location.state?.applicationData,
         quoteDetails: quote,
+        riskValues: quote.risk_values, 
+        coverageValues: quote.coverage_values, 
         fromQuoteCards: true 
       },
     });
   };
 
   const handleSubmitQuote = () => {
-    // Implement quote submission logic
     message.success('Quote submitted successfully!');
     navigate('/free/new-submission');
   };
@@ -87,24 +89,20 @@ const QuotePage = () => {
     const dataToDownload = location.state?.formData || {};
     const doc = new jsPDF();
     
-    // Add title
     doc.setFontSize(18);
     doc.text('Quote Details', 10, 20);
 
-    // Add form data
     let yPosition = 30;
     doc.setFontSize(12);
     
-    Object.entries(dataToDownload).forEach(([key, value], index) => {
+    Object.entries(dataToDownload).forEach(([key, value]) => {
       doc.text(`${key}: ${String(value)}`, 10, yPosition);
       yPosition += 10;
     });
 
-    // Save the PDF
     doc.save('quote_details.pdf');
   };
 
-  // If a specific quote is selected from quote cards, show quote details
   if (formData && location.state?.fromQuoteCards) {
     return (
       <MainCard 
@@ -121,6 +119,7 @@ const QuotePage = () => {
         }
       >
         <Card>
+          {/* Form Data
           <Descriptions bordered column={1}>
             {Object.entries(formData).map(([key, value]) => (
               <Descriptions.Item key={key} label={key}>
@@ -130,8 +129,8 @@ const QuotePage = () => {
                     ? JSON.stringify(value) 
                     : String(value)}
               </Descriptions.Item>
-            ))}
-          </Descriptions>
+            ))} 
+          </Descriptions>*/}
         
           {/* Quote-specific details */}
           {location.state?.quoteDetails && (
@@ -148,6 +147,21 @@ const QuotePage = () => {
                   {location.state.quoteDetails.status}
                 </Descriptions.Item>
               </Descriptions>
+              
+              {/* Risk and Coverage Values under Quote Details */}
+              <h3 style={{ marginTop: '20px' }}>Risk and Coverage Details</h3>
+              <Descriptions bordered column={1}>
+                {location.state.riskValues?.map((risk, index) => (
+                  <Descriptions.Item key={`risk-${index}`} label={risk.parameter_text.agent_facing_text}>
+                    {risk.value}
+                  </Descriptions.Item>
+                ))}
+                {location.state.coverageValues?.map((coverage, index) => (
+                  <Descriptions.Item key={`coverage-${index}`} label={coverage.parameter_text.agent_facing_text}>
+                    {coverage.value}
+                  </Descriptions.Item>
+                ))}
+              </Descriptions>
             </div>
           )}
         </Card>
@@ -159,9 +173,9 @@ const QuotePage = () => {
   return (
     <MainCard title="Quotes">
       <div>
-        {quotes.length === 0 ? (
+        {loading ? (
           <div style={{ textAlign: 'center', padding: '20px' }}>
-         <Spin size="large" style={{ display: "block", margin: "auto", marginTop: "20%" }} />;
+            <Spin size="large" style={{ display: "block", margin: "auto", marginTop: "20%" }} />;
           </div>
         ) : (
           quotes.map((quote) => (

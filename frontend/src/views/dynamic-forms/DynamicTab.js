@@ -4,7 +4,6 @@ import axios from "axios";
 import moment from "moment";
 import { useNavigate } from 'react-router-dom';
 import MapView from "./Map";
-import dayjs from "dayjs"
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -90,7 +89,7 @@ const DynamicForm = () => {
 
       // Switch to Coverage Values tab
       setCurrentTab("coverage_values");
-      // form.resetFields();
+      form.resetFields();
     } catch (errorInfo) {
       console.log('Form validation failed:', errorInfo);
       message.error('Please fill in all required fields correctly.');
@@ -175,7 +174,7 @@ const DynamicForm = () => {
         { risk_parameter_id: "rsk_78cv_cyb_claim_event", value: riskValues["rsk_78cv_cyb_claim_event"] || {
           amount: 71680852,
           description: "extend visionary e-business claim",
-          // date: moment("2023-01-23"),
+          date: "2023-01-23"
         }, instance: "cyb_claim_event_1" },
         { risk_parameter_id: "rsk_ggy8_cyb_warranty", value: riskValues["rsk_ggy8_cyb_warranty"] || "yes" },
         { risk_parameter_id: "rsk_w6ug_herald_attestation", value: riskValues["rsk_w6ug_herald_attestation"] || "agree" }
@@ -376,9 +375,7 @@ const DynamicForm = () => {
                   }
                   break;
                 case "date":
-                  console.log("Date ");
-                  prefillData[fieldKey] = value;
-                  console.log("Date Values",value);
+                  prefillData[fieldKey] = moment().format("YYYY-MM-DD");
                   break;
                 case "address":
                   if (field.schema?.properties) {
