@@ -322,32 +322,36 @@ const DynamicForm = () => {
           setIsModalVisible(true);
         }}
       >
-        <Row gutter={16}>
-          {["Basic Information", "Risk Information"].map((sectionName) => (
-            <Col span={12} key={sectionName}>
-              <div style={{ marginBottom: 24 }}>
-                <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
-                {groupedSections[sectionName]?.map((field) => renderField(field))}
-                {/* Insert MapView right after Risk Information fields */}
-                {sectionName === "Risk Information" && (
-                  <div style={{ marginTop: 16 }}>
-                    <MapView />
-                  </div>
-                )}
-              </div>
-            </Col>
-          ))}
-        </Row>
-        {Object.entries(groupedSections)
-          .filter(([sectionName]) => !["Basic Information", "Risk Information"].includes(sectionName))
-          .map(([sectionName, fields]) => (
-            <div key={sectionName} style={{ marginBottom: 24 }}>
-              <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
-              {fields.map((field) => renderField(field))}
-            </div>
-          ))}
-
-      
+      {currentTab === "risk_values" ? (
+          // Risk Values Tab Content
+          <Row gutter={16}>
+            {["Basic Information", "Risk Information"].map((sectionName) => (
+              <Col span={12} key={sectionName}>
+                <div style={{ marginBottom: 24 }}>
+                  <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
+                  {groupedSections[sectionName]?.map((field) => renderField(field))}
+                  {sectionName === "Risk Information" && (
+                    <div style={{ marginTop: 16 }}>
+                      <MapView />
+                    </div>
+                  )}
+                </div>
+              </Col>
+            ))}
+          </Row>
+        ) : (
+          // Coverage Values Tab Content
+          <>
+            {Object.entries(groupedSections)
+              .filter(([sectionName]) => !["Basic Information", "Risk Information"].includes(sectionName))
+              .map(([sectionName, fields]) => (
+                <div key={sectionName} style={{ marginBottom: 24 }}>
+                  <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
+                  {fields.map((field) => renderField(field))}
+                </div>
+              ))}
+          </>
+        )}
         {currentTab === "risk_values" ? (
           <Form.Item style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Space>
