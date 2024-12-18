@@ -3,6 +3,7 @@ import { Form, Input, InputNumber, Select, DatePicker, Button, message, Spin, Ta
 import axios from "axios";
 import moment from "moment";
 import { useNavigate } from 'react-router-dom';
+import MapView from "./Map";
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -166,27 +167,27 @@ const DynamicForm = () => {
           },
         }
       );
-  
+
       if (response.data && response.data.application) {
         const { risk_values = [], coverage_values = [] } = response.data.application;
-  
+
         console.log("Risk Values:", risk_values);
         console.log("Coverage Values:", coverage_values);
-  
+
         const prefillData = {};
-  
+
         const processFields = (fields, type) => {
           console.log(`Processing ${type} Fields:`, fields);
-  
+
           fields.forEach((field) => {
             const { risk_parameter_id, coverage_parameter_id, input_type, value } = field;
             const fieldKey = risk_parameter_id || coverage_parameter_id;
-  
+
             if (!fieldKey) {
               console.warn(`Missing fieldKey for ${type} field:`, field);
               return;
             }
-  
+
             // Use value directly if present, fallback to defaults otherwise
             if (value !== undefined) {
               prefillData[fieldKey] = value;
@@ -237,13 +238,13 @@ const DynamicForm = () => {
             }
           });
         };
-  
+
         // Process both risk and coverage values
         processFields(risk_values, "Risk");
         processFields(coverage_values, "Coverage");
-  
+
         console.log("Prefill Data After Processing:", prefillData);
-  
+
         // Apply prefilled values to the form
         form.setFieldsValue(prefillData);
         message.success("Form prefilled successfully!");
@@ -258,9 +259,9 @@ const DynamicForm = () => {
       setLoading(false);
     }
   };
-   
-  
-  
+
+
+
 
   const renderModalContent = () => {
     const isSuccess = submitStatus.type === 'success';
@@ -324,12 +325,16 @@ const DynamicForm = () => {
         <Row gutter={16}>
           {["Basic Information", "Risk Information"].map((sectionName) => (
             <Col span={12} key={sectionName}>
-              {groupedSections[sectionName] && (
-                <div style={{ marginBottom: 24 }}>
-                  <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
-                  {groupedSections[sectionName].map((field) => renderField(field))}
-                </div>
-              )}
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{sectionName}</h3>
+                {groupedSections[sectionName]?.map((field) => renderField(field))}
+                {/* Insert MapView right after Risk Information fields */}
+                {sectionName === "Risk Information" && (
+                  <div style={{ marginTop: 16 }}>
+                    <MapView />
+                  </div>
+                )}
+              </div>
             </Col>
           ))}
         </Row>
@@ -342,6 +347,7 @@ const DynamicForm = () => {
             </div>
           ))}
 
+      
         {currentTab === "risk_values" ? (
           <Form.Item style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Space>
@@ -349,7 +355,7 @@ const DynamicForm = () => {
                 Next
               </Button>
               <Button type="default" onClick={handlePrefill}>
-                Prefill 
+                Prefill
               </Button>
             </Space>
           </Form.Item>
