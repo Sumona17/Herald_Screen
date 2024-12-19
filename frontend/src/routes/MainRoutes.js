@@ -7,11 +7,9 @@ import UITabs from 'views/dynamic-forms/UITabs';
 import DynamicForm from 'views/dynamic-forms/UITabs';
 import DynamicFormTab from 'views/dynamic-forms/DynamicTab';
 
-
-
 const QuotePage = Loadable(lazy(() => {
   console.log('Attempting to load QuotePage');
-  return import('views/dynamic-forms/QuotePage')
+  return import('views/dynamic-forms/QuotePage');
 }));
 
 // dashboard routing
@@ -96,11 +94,11 @@ const MainRoutes = {
       element: <SamplePage />
     },
     {
-      path: 'free/new-submission',
-      element: <DynamicFormTab/>
+      path: 'new-submission',
+      element: <DynamicFormTab />
     },
     {
-      path: '/free/quotecards',
+      path: '/new-submission/quotecards',
       element: (
         <>
           {console.log('Rendering QuotePage route')}
@@ -109,7 +107,7 @@ const MainRoutes = {
       )
     },
     {
-      path: '/free/quotedetails',
+      path: '/new-submission/quotedetails',
       element: (
         <>
           {console.log('Rendering QuotePage route')}

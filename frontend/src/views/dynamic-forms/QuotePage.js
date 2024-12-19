@@ -74,7 +74,7 @@ const QuotePage = () => {
 
 
   const handleGetQuote = (quote) => {
-    navigate('/free/quotedetails', {
+    navigate('/new-submission/quotedetails', {
       state: { 
         formData: location.state?.formData, 
         applicationData: location.state?.applicationData,
@@ -88,7 +88,7 @@ const QuotePage = () => {
 
   const handleSubmitQuote = () => {
     message.success('Quote submitted successfully!');
-    navigate('/free/new-submission');
+    navigate('/new-submission');
   };
 
   const handleDownloadQuote = () => {

@@ -31,7 +31,7 @@ const userMenuItems1 = {
       id: 'heraldForm',
       title: 'Herald Form',
       type: 'item',
-      url: '/free/new-submission',
+      url: '/new-submission',
       icon: icons.IconDashboard,
       breadcrumbs: false
     },

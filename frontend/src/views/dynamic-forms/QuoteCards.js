@@ -48,7 +48,7 @@ const QuoteCards = () => {
   };
 
   const handleGetQuote = (quote) => {
-    navigate(`/free/quotedetails`, {
+    navigate(`/new-submission/quotedetails`, {
       state: { formData: quote, applicationData: quote.coverage_values },
     });
   };

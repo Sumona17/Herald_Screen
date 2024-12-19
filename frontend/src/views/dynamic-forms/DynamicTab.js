@@ -313,7 +313,7 @@ const DynamicForm = () => {
 
 
   const handleGetQuote = () => {
-    navigate('/free/quotedetails', {
+    navigate('/new-submission/quotedetails', {
       state: {
         formData: { ...riskValuesData, ...coverageValuesData },
         applicationData
