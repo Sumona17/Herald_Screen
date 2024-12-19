@@ -698,35 +698,47 @@ const DynamicForm = () => {
             </Select>
           </Form.Item>
         );
-      case "date":
-        return (
-          <Form.Item
-            key={fieldKey}
-            name={fieldKey}
-            label={parameter_text.agent_facing_text}
-            rules={[
-              { required: false, message: `Please select ${parameter_text.agent_facing_text}` },
-              {
-                validator: (_, value) => {
-                  if (!value) return Promise.resolve();
-                  const selectedDate = moment(value);
-                  const minDate = moment(schema.min_date);
-                  const maxDate = moment(schema.max_date);
-
-                  if (selectedDate.isBefore(minDate) || selectedDate.isAfter(maxDate)) {
-                    return Promise.reject(
-                      new Error(`Date must be between ${schema.min_date} and ${schema.max_date}`)
-                    );
-                  }
-
-                  return Promise.resolve();
+        case "date":
+          return (
+            <Form.Item
+              key={fieldKey}
+              name={fieldKey}
+              label={parameter_text.agent_facing_text}
+              rules={[
+                { required: false, message: `Please select ${parameter_text.agent_facing_text}` },
+                {
+                  validator: (_, value) => {
+                    if (!value) return Promise.resolve();
+                    const selectedDate = moment(value);
+                    const minDate = moment(schema.min_date);
+                    const maxDate = moment(schema.max_date);
+      
+                    if (selectedDate.isBefore(minDate) || selectedDate.isAfter(maxDate)) {
+                      return Promise.reject(
+                        new Error(`Date must be between ${schema.min_date} and ${schema.max_date}`)
+                      );
+                    }
+                    return Promise.resolve();
+                  },
                 },
-              },
-            ]}
-          >
-            <DatePicker style={{ width: "100%" }} placeholder={`Select ${parameter_text.agent_facing_text}`} />
-          </Form.Item>
-        );
+              ]}
+              // Add getValueProps to format the date value before form submission
+              getValueProps={(value) => ({
+                value: value ? moment(value) : undefined
+              })}
+              // Add getValueFromEvent to format the date when it changes
+              getValueFromEvent={(date) => {
+                if (!date) return undefined;
+                return moment(date).format('YYYY-MM-DD');
+              }}
+            >
+              <DatePicker 
+                style={{ width: "100%" }} 
+                placeholder={`Select ${parameter_text.agent_facing_text}`}
+                format="YYYY-MM-DD"  // Explicitly set the display format
+              />
+            </Form.Item>
+          );
       case "address":
         return (
           <div key={fieldKey}>
