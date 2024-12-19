@@ -60,12 +60,18 @@ const QuotePage = () => {
     }
   };
 
-  const renderPrice = (prices) => {
-    if (prices) {
-      return `$${prices}`;
+  const formatPrice = (price) => {
+    if (!price) return 'N/A';
+    // Handle if price is an object with a specific property (adjust based on your actual price object structure)
+    if (typeof price === 'object') {
+      // Assuming the price object has a value or amount property
+      const priceValue = price.value || price.amount || Object.values(price)[0];
+      return typeof priceValue === 'number' ? `$${priceValue.toLocaleString()}` : 'N/A';
     }
-    return "N/A";
+    // Handle if price is a number
+    return typeof price === 'number' ? `$${price.toLocaleString()}` : 'N/A';
   };
+
 
   const handleGetQuote = (quote) => {
     navigate('/free/quotedetails', {
@@ -141,7 +147,7 @@ const QuotePage = () => {
                   {location.state.quoteDetails.product.name}
                 </Descriptions.Item>
                 <Descriptions.Item label="Price">
-                  {location.state.quoteDetails.prices ? `$${location.state.quoteDetails.prices}` : 'N/A'}
+                  {formatPrice(location.state.quoteDetails.prices)}
                 </Descriptions.Item>
                 <Descriptions.Item label="Status">
                   {location.state.quoteDetails.status}
@@ -186,7 +192,7 @@ const QuotePage = () => {
               style={{ marginBottom: "20px" }}
             >
               <p>
-                <strong>Price:</strong> {renderPrice(quote.prices)}
+                <strong>Price:</strong> {formatPrice(quote.prices)}
               </p>
               {quote.portal_link ? (
                 <a href={quote.portal_link} target="_blank" rel="noopener noreferrer">
