@@ -211,7 +211,7 @@ const QuotePage = () => {
               </div>
               <Collapse style={{ marginTop: "20px" }}>
                 <Panel header="Coverage Details" key="1">
-                  {quote.coverage_values.map((coverage, index) => (
+                  {quote?.coverage_values?.map((coverage, index) => (
                     <p key={index}>
                       <strong>{coverage.parameter_text.agent_facing_text}:</strong> {coverage.value}
                     </p>
