@@ -20,6 +20,7 @@ const DynamicForm = () => {
   const [riskValuesData, setRiskValuesData] = useState({});
   const [coverageValuesData, setCoverageValuesData] = useState({});
   const [finalSubmissionData, setFinalSubmissionData] = useState(null);
+  const [prefillDataCache, setPrefillDataCache] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -321,6 +322,7 @@ const DynamicForm = () => {
     });
   }
 
+  // Updated handlePrefill function
   const handlePrefill = async () => {
     try {
       setLoading(true);
@@ -337,8 +339,8 @@ const DynamicForm = () => {
       if (response.data && response.data.application) {
         const { risk_values = [], coverage_values = [] } = response.data.application;
 
-        console.log("Risk Values:", risk_values);
-        console.log("Coverage Values:", coverage_values);
+        console.log("Fetched Risk Values:", risk_values);
+        console.log("Fetched Coverage Values:", coverage_values);
 
         const prefillData = {};
 
@@ -346,61 +348,58 @@ const DynamicForm = () => {
           console.log(`Processing ${type} Fields:`, fields);
 
           fields.forEach((field) => {
-            const { risk_parameter_id, coverage_parameter_id, input_type, value } = field;
-            const fieldKey = risk_parameter_id || coverage_parameter_id;
-
-            if (!fieldKey) {
-              console.warn(`Missing fieldKey for ${type} field:`, field);
+            const fieldId = field.risk_parameter_id || field.coverage_parameter_id;
+            
+            if (!fieldId) {
+              console.warn(`Missing field ID for ${type} field:`, field);
               return;
             }
 
-            // Use value directly if present, fallback to defaults otherwise
-            if (value !== undefined) {
-              prefillData[fieldKey] = value;
-            } else {
-              switch (input_type) {
-                case "short_text":
-                  prefillData[fieldKey] = `Sample ${field.parameter_text?.agent_facing_text || "Text"}`;
-                  break;
-                case "integer":
-                case "number":
-                  prefillData[fieldKey] = field.schema?.minimum || 1000;
-                  break;
-                case "email":
-                  prefillData[fieldKey] = `sample_${Math.random().toString(36).substring(7)}@example.com`;
-                  break;
-                case "phone":
-                  prefillData[fieldKey] = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
-                  break;
-                case "select_one":
-                  if (field.schema?.enum?.length > 0) {
-                    prefillData[fieldKey] = field.schema.enum[0];
-                  }
-                  break;
-                case "select_many":
-                  if (field.schema?.items?.enum?.length > 0) {
-                    prefillData[fieldKey] = [field.schema.items.enum[0]];
-                  }
-                  break;
-                case "date":
-                  prefillData[fieldKey] = moment().format("YYYY-MM-DD");
-                  break;
-                case "address":
-                  if (field.schema?.properties) {
-                    Object.keys(field.schema.properties).forEach((key) => {
-                      const subFieldKey = `${fieldKey}.${key}`;
-                      const propertySchema = field.schema.properties[key];
-                      prefillData[subFieldKey] =
-                        propertySchema?.enum?.[0] || `Sample ${propertySchema?.title || key}`;
-                    });
-                  }
-                  break;
-                case "currency":
-                  prefillData[fieldKey] = field.schema?.minimum || 1000;
-                  break;
-                default:
-                  prefillData[fieldKey] = `Sample ${field.parameter_text?.agent_facing_text || "Field"}`;
-              }
+            // Handle existing values from the API
+            if (field.value !== undefined) {
+              prefillData[fieldId] = field.value;
+              return;
+            }
+
+            // Default value handling based on input type
+            switch (field.input_type) {
+              case "short_text":
+                prefillData[fieldId] = field.schema?.default || `Sample ${field.parameter_text?.agent_facing_text || "Text"}`;
+                break;
+              case "integer":
+              case "number":
+                prefillData[fieldId] = field.schema?.default || field.schema?.minimum || 1000;
+                break;
+              case "email":
+                prefillData[fieldId] = `sample_${Math.random().toString(36).substring(7)}@example.com`;
+                break;
+              case "phone":
+                prefillData[fieldId] = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+                break;
+              case "select_one":
+                prefillData[fieldId] = field.schema?.default || (field.schema?.enum?.length ? field.schema.enum[0] : null);
+                break;
+              case "select_many":
+                prefillData[fieldId] = field.schema?.default || (field.schema?.items?.enum?.length ? [field.schema.items.enum[0]] : []);
+                break;
+              case "date":
+                prefillData[fieldId] = field.schema?.default || moment().format("YYYY-MM-DD");
+                break;
+              case "address":
+                if (field.schema?.properties) {
+                  Object.keys(field.schema.properties).forEach((key) => {
+                    const propertySchema = field.schema.properties[key];
+                    prefillData[`${fieldId}.${key}`] = propertySchema?.default || 
+                      propertySchema?.enum?.[0] || 
+                      `Sample ${propertySchema?.title || key}`;
+                  });
+                }
+                break;
+              case "currency":
+                prefillData[fieldId] = field.schema?.default || field.schema?.minimum || 1000;
+                break;
+              default:
+                prefillData[fieldId] = `Sample ${field.parameter_text?.agent_facing_text || "Field"}`;
             }
           });
         };
@@ -409,18 +408,34 @@ const DynamicForm = () => {
         processFields(risk_values, "Risk");
         processFields(coverage_values, "Coverage");
 
-        console.log("Prefill Data After Processing:", prefillData);
+        console.log("Final Prefill Data:", prefillData);
 
-        // Apply prefilled values to the form
-        form.setFieldsValue(prefillData);
+        // Store the complete prefill data in the cache
+        setPrefillDataCache(prefillData);
+
+        // Set initial form values based on current tab
+        const currentTabFields = currentTab === 'risk_values' 
+          ? risk_values.map(f => f.risk_parameter_id)
+          : coverage_values.map(f => f.coverage_parameter_id);
+
+        const currentTabData = Object.keys(prefillData)
+          .filter(key => currentTabFields.includes(key))
+          .reduce((obj, key) => {
+            obj[key] = prefillData[key];
+            return obj;
+          }, {});
+
+        // Set form fields for current tab
+        form.setFieldsValue(currentTabData);
+
         message.success("Form prefilled successfully!");
         window.scrollTo(0, 0);
       } else {
-        throw new Error("Invalid API response format.");
+        throw new Error("Invalid API response format");
       }
     } catch (error) {
       console.error("Error during prefill:", error);
-      message.error("Failed to prefill the form.");
+      message.error("Failed to prefill the form: " + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
     }
@@ -840,7 +855,24 @@ const DynamicForm = () => {
 
   const handleTabChange = (key) => {
     setCurrentTab(key);
-    form.resetFields();
+    
+    // If we have prefilled data, set the appropriate fields for the new tab
+    if (Object.keys(prefillDataCache).length > 0) {
+      const relevantFields = applicationData[key].map(
+        field => field.risk_parameter_id || field.coverage_parameter_id
+      );
+      
+      const tabData = Object.keys(prefillDataCache)
+        .filter(key => relevantFields.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = prefillDataCache[key];
+          return obj;
+        }, {});
+      
+      form.setFieldsValue(tabData);
+    } else {
+      form.resetFields();
+    }
   };
 
   return (
